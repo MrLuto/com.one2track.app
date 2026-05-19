@@ -25,5 +25,8 @@
   },
   "1.0.8": {
     "en": "Fixed One2Track device commands that were reported as failed with 406 while they had actually succeeded, including Find Device, GPS interval and sound profile changes."
+  },
+  "1.1.0": {
+    "en": "Added advanced One2Track flows for battery and SIM thresholds, stale location detection, speed and steps thresholds, custom zone entry and exit, Homey distance checks, stationary detection, and GPS/profile mode flow actions."
   }
 }
