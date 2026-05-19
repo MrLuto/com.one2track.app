@@ -1,0 +1,52 @@
+{
+  "id": "com.one2track.app",
+  "version": "1.0.8",
+  "compatibility": ">=12.0.1",
+  "sdk": 3,
+  "platforms": [
+    "local"
+  ],
+  "runtime": "nodejs",
+  "permissions": [
+    "homey:manager:geolocation"
+  ],
+  "name": {
+    "en": "One2Track",
+    "nl": "One2Track"
+  },
+  "description": {
+    "en": "Track your One2Track watch in Homey Pro with live location, messages and safety alerts.",
+    "nl": "Volg je One2Track-horloge in Homey Pro met live locatie, berichten en veiligheidsmeldingen."
+  },
+  "brandColor": "#245f73",
+  "category": "localization",
+  "tags": {
+    "en": [
+      "gps",
+      "tracker",
+      "watch",
+      "wearable",
+      "location",
+      "family"
+    ],
+    "nl": [
+      "gps",
+      "tracker",
+      "horloge",
+      "wearable",
+      "locatie",
+      "familie"
+    ]
+  },
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "homepage": "https://www.one2track.nl",
+  "support": "https://www.one2track.nl/one2track/klantenservice",
+  "author": {
+    "name": "MR Luto",
+    "email": "micha@byluto.nl"
+  }
+}

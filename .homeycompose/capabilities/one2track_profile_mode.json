@@ -1,0 +1,20 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "Profile mode",
+    "nl": "Profielmodus"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "picker",
+  "icon": "/assets/icons/status.svg",
+  "values": [
+    {
+      "id": "unknown",
+      "title": {
+        "en": "Unknown",
+        "nl": "Onbekend"
+      }
+    }
+  ]
+}

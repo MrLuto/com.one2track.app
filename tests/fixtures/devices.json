@@ -1,0 +1,35 @@
+[
+  {
+    "device": {
+      "id": 7,
+      "serial_number": "OT-123",
+      "name": "Kid Tracker",
+      "phone_number": "+3100000000",
+      "status": "GPS",
+      "uuid": "uuid-1",
+      "last_location": {
+        "id": 99,
+        "last_communication": "2026-05-15T10:00:00.000Z",
+        "last_location_update": "2026-05-15T10:00:00.000Z",
+        "address": "Main Street 1",
+        "latitude": "52.1000",
+        "longitude": "5.1000",
+        "altitude": "4",
+        "location_type": "GPS",
+        "signal_strength": 73,
+        "satellite_count": 7,
+        "speed": "12.4",
+        "battery_percentage": 88,
+        "meta_data": {
+          "tumble": "true",
+          "steps": "3210",
+          "accuracy_meters": 9.1
+        }
+      },
+      "simcard": {
+        "balance_cents": 123
+      }
+    }
+  }
+]
+

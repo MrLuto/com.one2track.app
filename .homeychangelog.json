@@ -1,0 +1,29 @@
+{
+  "1.0.0": {
+    "en": "Initial Homey release for One2Track GPS trackers with shared account polling, dynamic command discovery, advanced Flow actions, diagnostics and safety guards."
+  },
+  "1.0.1": {
+    "en": "Fixed the Homey startup crash by exporting the app entrypoints correctly and added the missing app icon."
+  },
+  "1.0.2": {
+    "en": "Improved App Store compliance with a transparent app icon, updated store images, a driver xlarge image, shorter README text and a minimum Homey version of 12.0.1."
+  },
+  "1.0.3": {
+    "en": "new icons"
+  },
+  "1.0.4": {
+    "en": "Improved app icon and store presentation. Updated the app description and README text for a cleaner App Store listing."
+  },
+  "1.0.5": {
+    "en": "Republished the current build for testing in the Homey Developer portal."
+  },
+  "1.0.6": {
+    "en": "Fixed the app icon so Homey now uses the intended SVG asset consistently."
+  },
+  "1.0.7": {
+    "en": "Reworked the app icon to a transparent, self-contained SVG so Homey uses it reliably in the App Store and app list."
+  },
+  "1.0.8": {
+    "en": "Fixed One2Track device commands that were reported as failed with 406 while they had actually succeeded, including Find Device, GPS interval and sound profile changes."
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "GPS interval",
+    "nl": "GPS-interval"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "picker",
+  "icon": "/assets/icons/satellites.svg",
+  "values": [
+    {
+      "id": "unknown",
+      "title": {
+        "en": "Unknown",
+        "nl": "Onbekend"
+      }
+    }
+  ]
+}

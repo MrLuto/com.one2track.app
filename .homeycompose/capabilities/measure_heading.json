@@ -1,0 +1,16 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Heading",
+    "nl": "Richting"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "units": {
+    "en": "deg",
+    "nl": "gr"
+  },
+  "decimals": 0,
+  "icon": "/assets/icons/speed.svg"
+}

@@ -1,0 +1,13 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Satellites",
+    "nl": "Satellieten"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "decimals": 0,
+  "icon": "/assets/icons/satellites.svg"
+}
+

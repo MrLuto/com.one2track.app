@@ -1,0 +1,27 @@
+{
+  "app": {
+    "pair": {
+      "login_title": "Sign in to One2Track",
+      "username_label": "Username or email",
+      "password_label": "Password",
+      "repair_title": "Reconnect One2Track",
+      "repair_submit": "Save credentials",
+      "repair_error": "Unable to reconnect with these credentials.",
+      "repair_success": "Credentials updated."
+    },
+    "errors": {
+      "invalid_credentials": "Invalid One2Track username or password.",
+      "cannot_connect": "Could not connect to One2Track.",
+      "unexpected_response": "One2Track returned an unexpected response.",
+      "account_missing": "No shared One2Track account is available for this tracker."
+    },
+    "flow": {
+      "status": {
+        "gps": "GPS",
+        "wifi": "Wi-Fi",
+        "offline": "Offline"
+      }
+    }
+  }
+}
+

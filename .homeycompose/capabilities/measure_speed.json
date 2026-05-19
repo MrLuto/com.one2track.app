@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Speed",
+    "nl": "Snelheid"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "units": {
+    "en": "km/h",
+    "nl": "km/u"
+  },
+  "decimals": 1,
+  "icon": "/assets/icons/speed.svg"
+}
+

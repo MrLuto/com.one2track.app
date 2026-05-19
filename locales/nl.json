@@ -1,0 +1,27 @@
+{
+  "app": {
+    "pair": {
+      "login_title": "Meld je aan bij One2Track",
+      "username_label": "Gebruikersnaam of e-mail",
+      "password_label": "Wachtwoord",
+      "repair_title": "Herstel One2Track-verbinding",
+      "repair_submit": "Inloggegevens opslaan",
+      "repair_error": "Opnieuw verbinden met deze gegevens is mislukt.",
+      "repair_success": "Inloggegevens bijgewerkt."
+    },
+    "errors": {
+      "invalid_credentials": "Ongeldige One2Track gebruikersnaam of wachtwoord.",
+      "cannot_connect": "Kan geen verbinding maken met One2Track.",
+      "unexpected_response": "One2Track gaf een onverwachte response terug.",
+      "account_missing": "Er is geen gedeeld One2Track-account beschikbaar voor deze tracker."
+    },
+    "flow": {
+      "status": {
+        "gps": "GPS",
+        "wifi": "Wi-Fi",
+        "offline": "Offline"
+      }
+    }
+  }
+}
+

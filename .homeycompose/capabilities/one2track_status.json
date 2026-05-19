@@ -1,0 +1,35 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "Status",
+    "nl": "Status"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/icons/status.svg",
+  "values": [
+    {
+      "id": "gps",
+      "title": {
+        "en": "GPS",
+        "nl": "GPS"
+      }
+    },
+    {
+      "id": "wifi",
+      "title": {
+        "en": "Wi-Fi",
+        "nl": "Wi-Fi"
+      }
+    },
+    {
+      "id": "offline",
+      "title": {
+        "en": "Offline",
+        "nl": "Offline"
+      }
+    }
+  ]
+}
+

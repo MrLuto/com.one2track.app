@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "GPS accuracy",
+    "nl": "GPS-nauwkeurigheid"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "units": {
+    "en": "m",
+    "nl": "m"
+  },
+  "decimals": 1,
+  "icon": "/assets/icons/accuracy.svg"
+}
+

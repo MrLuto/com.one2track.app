@@ -1,0 +1,71 @@
+{
+  "name": {
+    "en": "One2Track Tracker",
+    "nl": "One2Track Tracker"
+  },
+  "class": "sensor",
+  "platforms": ["local"],
+  "energy": {
+    "batteries": [
+      "INTERNAL"
+    ]
+  },
+  "images": {
+    "small": "/drivers/tracker/assets/images/small.png",
+    "large": "/drivers/tracker/assets/images/large.png",
+    "xlarge": "/drivers/tracker/assets/images/xlarge.png"
+  },
+  "capabilities": [
+    "measure_battery",
+    "one2track_status",
+    "alarm_tumble",
+    "alarm_offline",
+    "measure_speed",
+    "measure_altitude",
+    "measure_signal_strength",
+    "measure_satellites",
+    "measure_gps_accuracy",
+    "measure_steps",
+    "meter_sim_balance",
+    "one2track_address"
+  ],
+  "pair": [
+    {
+      "id": "login_credentials",
+      "template": "login_credentials",
+      "navigation": {
+        "next": "list_devices"
+      },
+      "options": {
+        "title": {
+          "en": "Sign in to One2Track",
+          "nl": "Meld je aan bij One2Track"
+        },
+        "usernameLabel": {
+          "en": "Username or email",
+          "nl": "Gebruikersnaam of e-mail"
+        },
+        "passwordLabel": {
+          "en": "Password",
+          "nl": "Wachtwoord"
+        }
+      }
+    },
+    {
+      "id": "list_devices",
+      "template": "list_devices",
+      "navigation": {
+        "next": "add_devices"
+      }
+    },
+    {
+      "id": "add_devices",
+      "template": "add_devices"
+    }
+  ],
+  "repair": [
+    {
+      "id": "repair_credentials"
+    }
+  ]
+}

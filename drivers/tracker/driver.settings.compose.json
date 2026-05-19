@@ -1,0 +1,146 @@
+[
+  {
+    "id": "diagnostics_heading",
+    "type": "label",
+    "label": {
+      "en": "Diagnostics",
+      "nl": "Diagnostiek"
+    },
+    "value": "-"
+  },
+  {
+    "id": "account_id",
+    "type": "label",
+    "label": {
+      "en": "Account ID",
+      "nl": "Account-ID"
+    },
+    "value": "-"
+  },
+  {
+    "id": "serial_number",
+    "type": "label",
+    "label": {
+      "en": "Serial number",
+      "nl": "Serienummer"
+    },
+    "value": "-"
+  },
+  {
+    "id": "model_name",
+    "type": "label",
+    "label": {
+      "en": "Model",
+      "nl": "Model"
+    },
+    "value": "-"
+  },
+  {
+    "id": "manufacturer",
+    "type": "label",
+    "label": {
+      "en": "Manufacturer",
+      "nl": "Fabrikant"
+    },
+    "value": "-"
+  },
+  {
+    "id": "phone_number",
+    "type": "label",
+    "label": {
+      "en": "Phone number",
+      "nl": "Telefoonnummer"
+    },
+    "value": "-"
+  },
+  {
+    "id": "location_type",
+    "type": "label",
+    "label": {
+      "en": "Raw location type",
+      "nl": "Ruwe locatietype"
+    },
+    "value": "-"
+  },
+  {
+    "id": "phonebook_count",
+    "type": "label",
+    "label": {
+      "en": "Phonebook contacts",
+      "nl": "Telefoonboekcontacten"
+    },
+    "value": "-"
+  },
+  {
+    "id": "whitelist_count",
+    "type": "label",
+    "label": {
+      "en": "Whitelist numbers",
+      "nl": "Whitelistnummers"
+    },
+    "value": "-"
+  },
+  {
+    "id": "last_sync_at",
+    "type": "label",
+    "label": {
+      "en": "Last successful sync",
+      "nl": "Laatste succesvolle sync"
+    },
+    "value": "-"
+  },
+  {
+    "id": "last_location_update",
+    "type": "label",
+    "label": {
+      "en": "Last location update",
+      "nl": "Laatste locatie-update"
+    },
+    "value": "-"
+  },
+  {
+    "id": "last_error",
+    "type": "label",
+    "label": {
+      "en": "Last error",
+      "nl": "Laatste fout"
+    },
+    "value": "-"
+  },
+  {
+    "id": "dangerous_commands_heading",
+    "type": "label",
+    "label": {
+      "en": "Advanced commands",
+      "nl": "Geavanceerde commando's"
+    },
+    "value": "Enable only if you trust these remote actions."
+  },
+  {
+    "id": "allow_remote_shutdown",
+    "type": "checkbox",
+    "label": {
+      "en": "Allow remote shutdown",
+      "nl": "Sta remote shutdown toe"
+    },
+    "value": false
+  },
+  {
+    "id": "allow_factory_reset",
+    "type": "checkbox",
+    "label": {
+      "en": "Allow factory reset",
+      "nl": "Sta fabrieksreset toe"
+    },
+    "value": false
+  },
+  {
+    "id": "allow_password_change",
+    "type": "checkbox",
+    "label": {
+      "en": "Allow password changes",
+      "nl": "Sta wachtwoordwijzigingen toe"
+    },
+    "value": false
+  }
+]

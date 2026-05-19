@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "SIM balance",
+    "nl": "SIM-saldo"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "units": {
+    "en": "EUR",
+    "nl": "EUR"
+  },
+  "decimals": 2,
+  "icon": "/assets/icons/balance.svg"
+}
+

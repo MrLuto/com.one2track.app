@@ -1,0 +1,17 @@
+{
+  "type": "number",
+  "title": {
+    "en": "Altitude",
+    "nl": "Hoogte"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "units": {
+    "en": "m",
+    "nl": "m"
+  },
+  "decimals": 0,
+  "icon": "/assets/icons/altitude.svg"
+}
+

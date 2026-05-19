@@ -1,0 +1,906 @@
+{
+  "triggers": [
+    {
+      "id": "location_updated",
+      "title": {
+        "en": "Location updated",
+        "nl": "Locatie bijgewerkt"
+      },
+      "tokens": [
+        { "name": "device_name", "type": "string", "title": { "en": "Device", "nl": "Apparaat" }, "example": { "en": "Sarah", "nl": "Sarah" } },
+        { "name": "status", "type": "string", "title": { "en": "Status", "nl": "Status" }, "example": { "en": "GPS", "nl": "GPS" } },
+        { "name": "battery", "type": "number", "title": { "en": "Battery", "nl": "Batterij" }, "example": { "en": "88", "nl": "88" } },
+        { "name": "address", "type": "string", "title": { "en": "Address", "nl": "Adres" }, "example": { "en": "Main Street 1", "nl": "Hoofdstraat 1" } },
+        { "name": "latitude", "type": "number", "title": { "en": "Latitude", "nl": "Breedtegraad" }, "example": { "en": "52.1000", "nl": "52.1000" } },
+        { "name": "longitude", "type": "number", "title": { "en": "Longitude", "nl": "Lengtegraad" }, "example": { "en": "5.1000", "nl": "5.1000" } },
+        { "name": "speed", "type": "number", "title": { "en": "Speed", "nl": "Snelheid" }, "example": { "en": "12.5", "nl": "12.5" } },
+        { "name": "accuracy", "type": "number", "title": { "en": "Accuracy", "nl": "Nauwkeurigheid" }, "example": { "en": "8", "nl": "8" } },
+        { "name": "satellites", "type": "number", "title": { "en": "Satellites", "nl": "Satellieten" }, "example": { "en": "7", "nl": "7" } },
+        { "name": "last_location_update", "type": "string", "title": { "en": "Last location update", "nl": "Laatste locatie-update" }, "example": { "en": "2026-05-15T10:00:00.000Z", "nl": "2026-05-15T10:00:00.000Z" } },
+        { "name": "model_name", "type": "string", "title": { "en": "Model", "nl": "Model" }, "example": { "en": "Connect UP", "nl": "Connect UP" } },
+        { "name": "heading", "type": "number", "title": { "en": "Heading", "nl": "Richting" }, "example": { "en": "180", "nl": "180" } },
+        { "name": "phonebook_count", "type": "number", "title": { "en": "Phonebook count", "nl": "Aantal telefoonboekcontacten" }, "example": { "en": "6", "nl": "6" } },
+        { "name": "whitelist_count", "type": "number", "title": { "en": "Whitelist count", "nl": "Aantal whitelistnummers" }, "example": { "en": "4", "nl": "4" } }
+      ]
+    },
+    {
+      "id": "status_changed",
+      "title": {
+        "en": "Status changed",
+        "nl": "Status gewijzigd"
+      },
+      "tokens": [
+        { "name": "device_name", "type": "string", "title": { "en": "Device", "nl": "Apparaat" }, "example": { "en": "Sarah", "nl": "Sarah" } },
+        { "name": "status", "type": "string", "title": { "en": "Status", "nl": "Status" }, "example": { "en": "Wi-Fi", "nl": "Wi-Fi" } }
+      ]
+    },
+    {
+      "id": "device_went_offline",
+      "title": {
+        "en": "Device went offline",
+        "nl": "Apparaat ging offline"
+      },
+      "tokens": [
+        { "name": "device_name", "type": "string", "title": { "en": "Device", "nl": "Apparaat" }, "example": { "en": "Sarah", "nl": "Sarah" } }
+      ]
+    },
+    {
+      "id": "device_came_online",
+      "title": {
+        "en": "Device came online",
+        "nl": "Apparaat kwam online"
+      },
+      "tokens": [
+        { "name": "device_name", "type": "string", "title": { "en": "Device", "nl": "Apparaat" }, "example": { "en": "Sarah", "nl": "Sarah" } },
+        { "name": "status", "type": "string", "title": { "en": "Status", "nl": "Status" }, "example": { "en": "GPS", "nl": "GPS" } }
+      ]
+    },
+    {
+      "id": "tumble_detected",
+      "title": {
+        "en": "Fall detected",
+        "nl": "Val gedetecteerd"
+      },
+      "tokens": [
+        { "name": "device_name", "type": "string", "title": { "en": "Device", "nl": "Apparaat" }, "example": { "en": "Sarah", "nl": "Sarah" } }
+      ]
+    },
+    {
+      "id": "tumble_cleared",
+      "title": {
+        "en": "Fall detection cleared",
+        "nl": "Valdetectie opgeheven"
+      },
+      "tokens": [
+        { "name": "device_name", "type": "string", "title": { "en": "Device", "nl": "Apparaat" }, "example": { "en": "Sarah", "nl": "Sarah" } }
+      ]
+    },
+    {
+      "id": "battery_below_threshold",
+      "title": {
+        "en": "Battery dropped to [[threshold]]% or lower",
+        "nl": "Batterij zakte naar [[threshold]]% of lager"
+      },
+      "titleFormatted": {
+        "en": "Battery dropped to [[threshold]]% or lower",
+        "nl": "Batterij zakte naar [[threshold]]% of lager"
+      },
+      "args": [
+        {
+          "name": "threshold",
+          "type": "number",
+          "title": { "en": "Threshold", "nl": "Drempel" },
+          "min": 0,
+          "max": 100,
+          "step": 1
+        }
+      ],
+      "tokens": [
+        { "name": "device_name", "type": "string", "title": { "en": "Device", "nl": "Apparaat" } },
+        { "name": "battery", "type": "number", "title": { "en": "Battery", "nl": "Batterij" } }
+      ]
+    },
+    {
+      "id": "sim_balance_below_threshold",
+      "title": {
+        "en": "SIM balance dropped to [[threshold]] EUR or lower",
+        "nl": "SIM-tegoed zakte naar [[threshold]] EUR of lager"
+      },
+      "titleFormatted": {
+        "en": "SIM balance dropped to [[threshold]] EUR or lower",
+        "nl": "SIM-tegoed zakte naar [[threshold]] EUR of lager"
+      },
+      "args": [
+        {
+          "name": "threshold",
+          "type": "number",
+          "title": { "en": "Threshold", "nl": "Drempel" },
+          "min": 0,
+          "max": 999,
+          "step": 0.01
+        }
+      ],
+      "tokens": [
+        { "name": "device_name", "type": "string", "title": { "en": "Device", "nl": "Apparaat" } },
+        { "name": "sim_balance", "type": "number", "title": { "en": "SIM balance", "nl": "SIM-tegoed" } }
+      ]
+    },
+    {
+      "id": "status_became",
+      "title": {
+        "en": "Status changed to [[status]]",
+        "nl": "Status wijzigde naar [[status]]"
+      },
+      "titleFormatted": {
+        "en": "Status changed to [[status]]",
+        "nl": "Status wijzigde naar [[status]]"
+      },
+      "args": [
+        {
+          "name": "status",
+          "type": "dropdown",
+          "title": { "en": "Status", "nl": "Status" },
+          "values": [
+            { "id": "gps", "label": { "en": "GPS", "nl": "GPS" } },
+            { "id": "wifi", "label": { "en": "Wi-Fi", "nl": "Wi-Fi" } },
+            { "id": "offline", "label": { "en": "Offline", "nl": "Offline" } }
+          ]
+        }
+      ],
+      "tokens": [
+        { "name": "device_name", "type": "string", "title": { "en": "Device", "nl": "Apparaat" } },
+        { "name": "status", "type": "string", "title": { "en": "Status", "nl": "Status" } }
+      ]
+    },
+    {
+      "id": "speed_above_threshold",
+      "title": {
+        "en": "Speed reached [[threshold]] km/h or higher",
+        "nl": "Snelheid bereikte [[threshold]] km/u of hoger"
+      },
+      "titleFormatted": {
+        "en": "Speed reached [[threshold]] km/h or higher",
+        "nl": "Snelheid bereikte [[threshold]] km/u of hoger"
+      },
+      "args": [
+        {
+          "name": "threshold",
+          "type": "number",
+          "title": { "en": "Threshold", "nl": "Drempel" },
+          "min": 0,
+          "max": 500,
+          "step": 0.1
+        }
+      ],
+      "tokens": [
+        { "name": "device_name", "type": "string", "title": { "en": "Device", "nl": "Apparaat" } },
+        { "name": "speed", "type": "number", "title": { "en": "Speed", "nl": "Snelheid" } }
+      ]
+    },
+    {
+      "id": "steps_above_threshold",
+      "title": {
+        "en": "Steps reached [[threshold]] or higher",
+        "nl": "Stappen bereikten [[threshold]] of hoger"
+      },
+      "titleFormatted": {
+        "en": "Steps reached [[threshold]] or higher",
+        "nl": "Stappen bereikten [[threshold]] of hoger"
+      },
+      "args": [
+        {
+          "name": "threshold",
+          "type": "number",
+          "title": { "en": "Threshold", "nl": "Drempel" },
+          "min": 0,
+          "max": 250000,
+          "step": 1
+        }
+      ],
+      "tokens": [
+        { "name": "device_name", "type": "string", "title": { "en": "Device", "nl": "Apparaat" } },
+        { "name": "steps", "type": "number", "title": { "en": "Steps", "nl": "Stappen" } }
+      ]
+    },
+    {
+      "id": "location_became_stale",
+      "title": {
+        "en": "Location has not been updated for more than [[minutes]] minutes",
+        "nl": "Locatie is langer dan [[minutes]] minuten niet bijgewerkt"
+      },
+      "titleFormatted": {
+        "en": "Location has not been updated for more than [[minutes]] minutes",
+        "nl": "Locatie is langer dan [[minutes]] minuten niet bijgewerkt"
+      },
+      "args": [
+        {
+          "name": "minutes",
+          "type": "number",
+          "title": { "en": "Minutes", "nl": "Minuten" },
+          "min": 1,
+          "max": 1440,
+          "step": 1
+        }
+      ],
+      "tokens": [
+        { "name": "device_name", "type": "string", "title": { "en": "Device", "nl": "Apparaat" } },
+        { "name": "last_location_update", "type": "string", "title": { "en": "Last location update", "nl": "Laatste locatie-update" } }
+      ]
+    },
+    {
+      "id": "entered_zone",
+      "title": {
+        "en": "Entered zone [[zone_name]] at [[latitude]], [[longitude]] with radius [[radius_meters]] m",
+        "nl": "Kwam zone [[zone_name]] binnen op [[latitude]], [[longitude]] met straal [[radius_meters]] m"
+      },
+      "titleFormatted": {
+        "en": "Entered zone [[zone_name]] at [[latitude]], [[longitude]] with radius [[radius_meters]] m",
+        "nl": "Kwam zone [[zone_name]] binnen op [[latitude]], [[longitude]] met straal [[radius_meters]] m"
+      },
+      "args": [
+        { "name": "zone_name", "type": "text", "title": { "en": "Zone name", "nl": "Zonenaam" } },
+        { "name": "latitude", "type": "number", "title": { "en": "Latitude", "nl": "Breedtegraad" }, "step": 0.000001 },
+        { "name": "longitude", "type": "number", "title": { "en": "Longitude", "nl": "Lengtegraad" }, "step": 0.000001 },
+        { "name": "radius_meters", "type": "number", "title": { "en": "Radius (meters)", "nl": "Straal (meter)" }, "min": 1, "max": 50000, "step": 1 }
+      ],
+      "tokens": [
+        { "name": "device_name", "type": "string", "title": { "en": "Device", "nl": "Apparaat" } },
+        { "name": "address", "type": "string", "title": { "en": "Address", "nl": "Adres" } },
+        { "name": "latitude", "type": "number", "title": { "en": "Latitude", "nl": "Breedtegraad" } },
+        { "name": "longitude", "type": "number", "title": { "en": "Longitude", "nl": "Lengtegraad" } }
+      ]
+    },
+    {
+      "id": "left_zone",
+      "title": {
+        "en": "Left zone [[zone_name]] at [[latitude]], [[longitude]] with radius [[radius_meters]] m",
+        "nl": "Verliet zone [[zone_name]] op [[latitude]], [[longitude]] met straal [[radius_meters]] m"
+      },
+      "titleFormatted": {
+        "en": "Left zone [[zone_name]] at [[latitude]], [[longitude]] with radius [[radius_meters]] m",
+        "nl": "Verliet zone [[zone_name]] op [[latitude]], [[longitude]] met straal [[radius_meters]] m"
+      },
+      "args": [
+        { "name": "zone_name", "type": "text", "title": { "en": "Zone name", "nl": "Zonenaam" } },
+        { "name": "latitude", "type": "number", "title": { "en": "Latitude", "nl": "Breedtegraad" }, "step": 0.000001 },
+        { "name": "longitude", "type": "number", "title": { "en": "Longitude", "nl": "Lengtegraad" }, "step": 0.000001 },
+        { "name": "radius_meters", "type": "number", "title": { "en": "Radius (meters)", "nl": "Straal (meter)" }, "min": 1, "max": 50000, "step": 1 }
+      ],
+      "tokens": [
+        { "name": "device_name", "type": "string", "title": { "en": "Device", "nl": "Apparaat" } },
+        { "name": "address", "type": "string", "title": { "en": "Address", "nl": "Adres" } },
+        { "name": "latitude", "type": "number", "title": { "en": "Latitude", "nl": "Breedtegraad" } },
+        { "name": "longitude", "type": "number", "title": { "en": "Longitude", "nl": "Lengtegraad" } }
+      ]
+    },
+    {
+      "id": "came_within_home_distance",
+      "title": {
+        "en": "Came within [[meters]] meters of Homey",
+        "nl": "Kwam binnen [[meters]] meter van Homey"
+      },
+      "titleFormatted": {
+        "en": "Came within [[meters]] meters of Homey",
+        "nl": "Kwam binnen [[meters]] meter van Homey"
+      },
+      "args": [
+        { "name": "meters", "type": "number", "title": { "en": "Meters", "nl": "Meter" }, "min": 1, "max": 500000, "step": 1 }
+      ],
+      "tokens": [
+        { "name": "device_name", "type": "string", "title": { "en": "Device", "nl": "Apparaat" } },
+        { "name": "distance_meters", "type": "number", "title": { "en": "Distance", "nl": "Afstand" } }
+      ]
+    },
+    {
+      "id": "went_beyond_home_distance",
+      "title": {
+        "en": "Went farther than [[kilometers]] km from Homey",
+        "nl": "Ging verder dan [[kilometers]] km van Homey"
+      },
+      "titleFormatted": {
+        "en": "Went farther than [[kilometers]] km from Homey",
+        "nl": "Ging verder dan [[kilometers]] km van Homey"
+      },
+      "args": [
+        { "name": "kilometers", "type": "number", "title": { "en": "Kilometers", "nl": "Kilometers" }, "min": 0.1, "max": 1000, "step": 0.1 }
+      ],
+      "tokens": [
+        { "name": "device_name", "type": "string", "title": { "en": "Device", "nl": "Apparaat" } },
+        { "name": "distance_meters", "type": "number", "title": { "en": "Distance", "nl": "Afstand" } }
+      ]
+    },
+    {
+      "id": "stationary_too_long",
+      "title": {
+        "en": "Stayed still for [[minutes]] minutes or longer",
+        "nl": "Stond [[minutes]] minuten of langer stil"
+      },
+      "titleFormatted": {
+        "en": "Stayed still for [[minutes]] minutes or longer",
+        "nl": "Stond [[minutes]] minuten of langer stil"
+      },
+      "args": [
+        { "name": "minutes", "type": "number", "title": { "en": "Minutes", "nl": "Minuten" }, "min": 1, "max": 1440, "step": 1 }
+      ],
+      "tokens": [
+        { "name": "device_name", "type": "string", "title": { "en": "Device", "nl": "Apparaat" } },
+        { "name": "speed", "type": "number", "title": { "en": "Speed", "nl": "Snelheid" } }
+      ]
+    },
+    {
+      "id": "remote_shutdown_requested",
+      "title": {
+        "en": "Remote shutdown was requested",
+        "nl": "Remote shutdown is aangevraagd"
+      },
+      "tokens": [
+        { "name": "device_name", "type": "string", "title": { "en": "Device", "nl": "Apparaat" } }
+      ]
+    }
+  ],
+  "conditions": [
+    {
+      "id": "is_offline",
+      "title": {
+        "en": "Offline",
+        "nl": "Offline"
+      },
+      "titleFormatted": {
+        "en": "!{{Is|Isn't}} offline",
+        "nl": "!{{Is|Is niet}} offline"
+      }
+    },
+    {
+      "id": "status_is",
+      "title": {
+        "en": "Status is [[status]]",
+        "nl": "Status is [[status]]"
+      },
+      "titleFormatted": {
+        "en": "!{{Status is|Status isn't}} [[status]]",
+        "nl": "!{{Status is|Status is niet}} [[status]]"
+      },
+      "args": [
+        {
+          "name": "status",
+          "type": "dropdown",
+          "title": {
+            "en": "Status",
+            "nl": "Status"
+          },
+          "values": [
+            { "id": "gps", "label": { "en": "GPS", "nl": "GPS" } },
+            { "id": "wifi", "label": { "en": "Wi-Fi", "nl": "Wi-Fi" } },
+            { "id": "offline", "label": { "en": "Offline", "nl": "Offline" } }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tumble_is_active",
+      "title": {
+        "en": "Fall detection active",
+        "nl": "Valdetectie actief"
+      },
+      "titleFormatted": {
+        "en": "!{{Fall detection is active|Fall detection isn't active}}",
+        "nl": "!{{Valdetectie is actief|Valdetectie is niet actief}}"
+      }
+    },
+    {
+      "id": "has_recent_location",
+      "title": {
+        "en": "Has location update in the last [[minutes]] minutes",
+        "nl": "Heeft een locatie-update in de laatste [[minutes]] minuten"
+      },
+      "titleFormatted": {
+        "en": "!{{Has|Doesn't have}} a location update in the last [[minutes]] minutes",
+        "nl": "!{{Heeft|Heeft geen}} locatie-update in de laatste [[minutes]] minuten"
+      },
+      "args": [
+        {
+          "name": "minutes",
+          "type": "number",
+          "title": {
+            "en": "Minutes",
+            "nl": "Minuten"
+          },
+          "min": 1,
+          "max": 1440,
+          "step": 1
+        }
+      ]
+    },
+    {
+      "id": "battery_is_at_or_below",
+      "title": {
+        "en": "Battery is at or below [[threshold]]%",
+        "nl": "Batterij is [[threshold]]% of lager"
+      },
+      "titleFormatted": {
+        "en": "!{{Battery is|Battery isn't}} at or below [[threshold]]%",
+        "nl": "!{{Batterij is|Batterij is niet}} [[threshold]]% of lager"
+      },
+      "args": [
+        { "name": "threshold", "type": "number", "title": { "en": "Threshold", "nl": "Drempel" }, "min": 0, "max": 100, "step": 1 }
+      ]
+    },
+    {
+      "id": "sim_balance_is_at_or_below",
+      "title": {
+        "en": "SIM balance is at or below [[threshold]] EUR",
+        "nl": "SIM-tegoed is [[threshold]] EUR of lager"
+      },
+      "titleFormatted": {
+        "en": "!{{SIM balance is|SIM balance isn't}} at or below [[threshold]] EUR",
+        "nl": "!{{SIM-tegoed is|SIM-tegoed is niet}} [[threshold]] EUR of lager"
+      },
+      "args": [
+        { "name": "threshold", "type": "number", "title": { "en": "Threshold", "nl": "Drempel" }, "min": 0, "max": 999, "step": 0.01 }
+      ]
+    },
+    {
+      "id": "location_is_stale",
+      "title": {
+        "en": "Location is older than [[minutes]] minutes",
+        "nl": "Locatie is ouder dan [[minutes]] minuten"
+      },
+      "titleFormatted": {
+        "en": "!{{Location is|Location isn't}} older than [[minutes]] minutes",
+        "nl": "!{{Locatie is|Locatie is niet}} ouder dan [[minutes]] minuten"
+      },
+      "args": [
+        { "name": "minutes", "type": "number", "title": { "en": "Minutes", "nl": "Minuten" }, "min": 1, "max": 1440, "step": 1 }
+      ]
+    },
+    {
+      "id": "speed_is_at_or_above",
+      "title": {
+        "en": "Speed is at or above [[threshold]] km/h",
+        "nl": "Snelheid is [[threshold]] km/u of hoger"
+      },
+      "titleFormatted": {
+        "en": "!{{Speed is|Speed isn't}} at or above [[threshold]] km/h",
+        "nl": "!{{Snelheid is|Snelheid is niet}} [[threshold]] km/u of hoger"
+      },
+      "args": [
+        { "name": "threshold", "type": "number", "title": { "en": "Threshold", "nl": "Drempel" }, "min": 0, "max": 500, "step": 0.1 }
+      ]
+    },
+    {
+      "id": "steps_are_at_or_above",
+      "title": {
+        "en": "Steps are at or above [[threshold]]",
+        "nl": "Stappen zijn [[threshold]] of hoger"
+      },
+      "titleFormatted": {
+        "en": "!{{Steps are|Steps aren't}} at or above [[threshold]]",
+        "nl": "!{{Stappen zijn|Stappen zijn niet}} [[threshold]] of hoger"
+      },
+      "args": [
+        { "name": "threshold", "type": "number", "title": { "en": "Threshold", "nl": "Drempel" }, "min": 0, "max": 250000, "step": 1 }
+      ]
+    },
+    {
+      "id": "is_in_zone",
+      "title": {
+        "en": "Is inside zone [[zone_name]] at [[latitude]], [[longitude]] with radius [[radius_meters]] m",
+        "nl": "Is binnen zone [[zone_name]] op [[latitude]], [[longitude]] met straal [[radius_meters]] m"
+      },
+      "titleFormatted": {
+        "en": "!{{Is|Isn't}} inside zone [[zone_name]] at [[latitude]], [[longitude]] with radius [[radius_meters]] m",
+        "nl": "!{{Is|Is niet}} binnen zone [[zone_name]] op [[latitude]], [[longitude]] met straal [[radius_meters]] m"
+      },
+      "args": [
+        { "name": "zone_name", "type": "text", "title": { "en": "Zone name", "nl": "Zonenaam" } },
+        { "name": "latitude", "type": "number", "title": { "en": "Latitude", "nl": "Breedtegraad" }, "step": 0.000001 },
+        { "name": "longitude", "type": "number", "title": { "en": "Longitude", "nl": "Lengtegraad" }, "step": 0.000001 },
+        { "name": "radius_meters", "type": "number", "title": { "en": "Radius (meters)", "nl": "Straal (meter)" }, "min": 1, "max": 50000, "step": 1 }
+      ]
+    },
+    {
+      "id": "is_within_home_distance",
+      "title": {
+        "en": "Is within [[meters]] meters of Homey",
+        "nl": "Is binnen [[meters]] meter van Homey"
+      },
+      "titleFormatted": {
+        "en": "!{{Is|Isn't}} within [[meters]] meters of Homey",
+        "nl": "!{{Is|Is niet}} binnen [[meters]] meter van Homey"
+      },
+      "args": [
+        { "name": "meters", "type": "number", "title": { "en": "Meters", "nl": "Meter" }, "min": 1, "max": 500000, "step": 1 }
+      ]
+    },
+    {
+      "id": "is_stationary_for",
+      "title": {
+        "en": "Has been stationary for [[minutes]] minutes",
+        "nl": "Staat al [[minutes]] minuten stil"
+      },
+      "titleFormatted": {
+        "en": "!{{Has|Hasn't}} been stationary for [[minutes]] minutes",
+        "nl": "!{{Staat|Staat niet}} al [[minutes]] minuten stil"
+      },
+      "args": [
+        { "name": "minutes", "type": "number", "title": { "en": "Minutes", "nl": "Minuten" }, "min": 1, "max": 1440, "step": 1 }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "send_message",
+      "title": {
+        "en": "Send a message",
+        "nl": "Stuur een bericht"
+      },
+      "titleFormatted": {
+        "en": "Send message: [[message]]",
+        "nl": "Stuur bericht: [[message]]"
+      },
+      "args": [
+        {
+          "name": "message",
+          "type": "text",
+          "title": {
+            "en": "Message",
+            "nl": "Bericht"
+          }
+        }
+      ]
+    },
+    {
+      "id": "force_update",
+      "title": {
+        "en": "Request a force update",
+        "nl": "Vraag een force update aan"
+      },
+      "titleFormatted": {
+        "en": "Request a force update",
+        "nl": "Vraag een force update aan"
+      }
+    },
+    {
+      "id": "find_device",
+      "title": {
+        "en": "Make the device ring",
+        "nl": "Laat het apparaat rinkelen"
+      },
+      "titleFormatted": {
+        "en": "Make the device ring",
+        "nl": "Laat het apparaat rinkelen"
+      }
+    },
+    {
+      "id": "set_gps_interval",
+      "title": {
+        "en": "Set GPS interval",
+        "nl": "Stel GPS-interval in"
+      },
+      "titleFormatted": {
+        "en": "Set GPS interval to [[option]]",
+        "nl": "Stel GPS-interval in op [[option]]"
+      },
+      "args": [
+        {
+          "name": "option",
+          "type": "autocomplete",
+          "title": {
+            "en": "GPS interval",
+            "nl": "GPS-interval"
+          }
+        }
+      ]
+    },
+    {
+      "id": "set_profile_mode",
+      "title": {
+        "en": "Set sound profile mode",
+        "nl": "Stel geluidsprofiel in"
+      },
+      "titleFormatted": {
+        "en": "Set sound profile mode to [[option]]",
+        "nl": "Stel geluidsprofiel in op [[option]]"
+      },
+      "args": [
+        {
+          "name": "option",
+          "type": "autocomplete",
+          "title": {
+            "en": "Profile mode",
+            "nl": "Profielmodus"
+          }
+        }
+      ]
+    },
+    {
+      "id": "set_sos_number",
+      "title": {
+        "en": "Set SOS number",
+        "nl": "Stel SOS-nummer in"
+      },
+      "titleFormatted": {
+        "en": "Set SOS number to [[phone_number]]",
+        "nl": "Stel SOS-nummer in op [[phone_number]]"
+      },
+      "args": [
+        {
+          "name": "phone_number",
+          "type": "text",
+          "title": {
+            "en": "Phone number",
+            "nl": "Telefoonnummer"
+          }
+        }
+      ]
+    },
+    {
+      "id": "set_language_timezone",
+      "title": {
+        "en": "Set language and timezone",
+        "nl": "Stel taal en tijdzone in"
+      },
+      "titleFormatted": {
+        "en": "Set language [[language]] and timezone [[utc_offset]]",
+        "nl": "Stel taal [[language]] en tijdzone [[utc_offset]] in"
+      },
+      "args": [
+        {
+          "name": "language",
+          "type": "text",
+          "title": {
+            "en": "Language code",
+            "nl": "Taalcode"
+          }
+        },
+        {
+          "name": "utc_offset",
+          "type": "text",
+          "title": {
+            "en": "UTC offset",
+            "nl": "UTC-offset"
+          }
+        }
+      ]
+    },
+    {
+      "id": "set_alarms",
+      "title": {
+        "en": "Set alarms",
+        "nl": "Stel alarmen in"
+      },
+      "titleFormatted": {
+        "en": "Set alarms to [[alarms]]",
+        "nl": "Stel alarmen in op [[alarms]]"
+      },
+      "args": [
+        {
+          "name": "alarms",
+          "type": "text",
+          "title": {
+            "en": "Alarms",
+            "nl": "Alarmen"
+          }
+        }
+      ]
+    },
+    {
+      "id": "set_quiet_times",
+      "title": {
+        "en": "Set quiet times",
+        "nl": "Stel stiltetijden in"
+      },
+      "titleFormatted": {
+        "en": "Set quiet times to [[windows_json]]",
+        "nl": "Stel stiltetijden in op [[windows_json]]"
+      },
+      "args": [
+        {
+          "name": "windows_json",
+          "type": "text",
+          "title": {
+            "en": "Quiet times JSON",
+            "nl": "Stiltetijden-JSON"
+          }
+        }
+      ]
+    },
+    {
+      "id": "set_phonebook",
+      "title": {
+        "en": "Replace the phonebook",
+        "nl": "Vervang het telefoonboek"
+      },
+      "titleFormatted": {
+        "en": "Replace the phonebook with [[contacts_json]]",
+        "nl": "Vervang het telefoonboek door [[contacts_json]]"
+      },
+      "args": [
+        {
+          "name": "contacts_json",
+          "type": "text",
+          "title": {
+            "en": "Contacts JSON",
+            "nl": "Contacten-JSON"
+          }
+        }
+      ]
+    },
+    {
+      "id": "add_phonebook_contact",
+      "title": {
+        "en": "Add a phonebook contact",
+        "nl": "Voeg een telefoonboekcontact toe"
+      },
+      "titleFormatted": {
+        "en": "Add [[name]] with [[number]]",
+        "nl": "Voeg [[name]] met [[number]] toe"
+      },
+      "args": [
+        {
+          "name": "name",
+          "type": "text",
+          "title": {
+            "en": "Name",
+            "nl": "Naam"
+          }
+        },
+        {
+          "name": "number",
+          "type": "text",
+          "title": {
+            "en": "Phone number",
+            "nl": "Telefoonnummer"
+          }
+        }
+      ]
+    },
+    {
+      "id": "remove_phonebook_contact",
+      "title": {
+        "en": "Remove a phonebook contact",
+        "nl": "Verwijder een telefoonboekcontact"
+      },
+      "titleFormatted": {
+        "en": "Remove [[name]]",
+        "nl": "Verwijder [[name]]"
+      },
+      "args": [
+        {
+          "name": "name",
+          "type": "text",
+          "title": {
+            "en": "Name",
+            "nl": "Naam"
+          }
+        }
+      ]
+    },
+    {
+      "id": "set_whitelist",
+      "title": {
+        "en": "Replace the whitelist",
+        "nl": "Vervang de whitelist"
+      },
+      "titleFormatted": {
+        "en": "Replace the whitelist with [[phone_numbers]]",
+        "nl": "Vervang de whitelist door [[phone_numbers]]"
+      },
+      "args": [
+        {
+          "name": "phone_numbers",
+          "type": "text",
+          "title": {
+            "en": "Comma-separated phone numbers",
+            "nl": "Komma-gescheiden telefoonnummers"
+          }
+        }
+      ]
+    },
+    {
+      "id": "add_whitelist_number",
+      "title": {
+        "en": "Add a whitelist number",
+        "nl": "Voeg een whitelistnummer toe"
+      },
+      "titleFormatted": {
+        "en": "Add whitelist number [[phone_number]]",
+        "nl": "Voeg whitelistnummer [[phone_number]] toe"
+      },
+      "args": [
+        {
+          "name": "phone_number",
+          "type": "text",
+          "title": {
+            "en": "Phone number",
+            "nl": "Telefoonnummer"
+          }
+        }
+      ]
+    },
+    {
+      "id": "remove_whitelist_number",
+      "title": {
+        "en": "Remove a whitelist number",
+        "nl": "Verwijder een whitelistnummer"
+      },
+      "titleFormatted": {
+        "en": "Remove whitelist number [[phone_number]]",
+        "nl": "Verwijder whitelistnummer [[phone_number]]"
+      },
+      "args": [
+        {
+          "name": "phone_number",
+          "type": "text",
+          "title": {
+            "en": "Phone number",
+            "nl": "Telefoonnummer"
+          }
+        }
+      ]
+    },
+    {
+      "id": "intercom",
+      "title": {
+        "en": "Start intercom",
+        "nl": "Start intercom"
+      },
+      "titleFormatted": {
+        "en": "Start intercom with [[phone_number]]",
+        "nl": "Start intercom met [[phone_number]]"
+      },
+      "args": [
+        {
+          "name": "phone_number",
+          "type": "text",
+          "title": {
+            "en": "Phone number",
+            "nl": "Telefoonnummer"
+          }
+        }
+      ]
+    },
+    {
+      "id": "change_password",
+      "title": {
+        "en": "Change the password",
+        "nl": "Wijzig het wachtwoord"
+      },
+      "titleFormatted": {
+        "en": "Change password to [[password]]",
+        "nl": "Wijzig wachtwoord naar [[password]]"
+      },
+      "args": [
+        {
+          "name": "password",
+          "type": "text",
+          "title": {
+            "en": "New password",
+            "nl": "Nieuw wachtwoord"
+          }
+        }
+      ]
+    },
+    {
+      "id": "factory_reset",
+      "title": {
+        "en": "Factory reset",
+        "nl": "Voer een fabrieksreset uit"
+      }
+    },
+    {
+      "id": "remote_shutdown",
+      "title": {
+        "en": "Remote shutdown",
+        "nl": "Schakel op afstand uit"
+      }
+    },
+    {
+      "id": "log_raw_diagnostics",
+      "title": {
+        "en": "Log raw diagnostics",
+        "nl": "Log ruwe diagnostiek"
+      }
+    }
+  ]
+}
