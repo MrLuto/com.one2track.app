@@ -1,6 +1,6 @@
 {
   "name": "com.one2track.app",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Homey app for One2Track GPS trackers",
   "private": true,
   "license": "MIT",

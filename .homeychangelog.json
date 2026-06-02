@@ -31,5 +31,8 @@
   },
   "1.2.0": {
     "en": "Added a Send Debug To Developer option for detailed debugging."
+  },
+  "1.2.1": {
+    "en": "Improved One2Track login handling when the upstream site redirects back to the sign-in page instead of returning an account redirect."
   }
 }

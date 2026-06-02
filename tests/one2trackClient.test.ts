@@ -13,6 +13,7 @@ import {
   parseDevicePage,
   parseFormValues,
   parseFunctionsList,
+  tryExtractAccountId,
 } from "../app/infra/one2trackClient";
 
 const baseUrl = "https://www.one2trackgps.com";
@@ -79,6 +80,10 @@ describe("One2TrackClient", () => {
 
   it("extracts the account id from an upstream redirect", () => {
     expect(extractAccountIdFromRedirect("/users/account-123/devices")).toBe("account-123");
+  });
+
+  it("returns null when no account id is present in a redirect-like value", () => {
+    expect(tryExtractAccountId("https://www.one2trackgps.com/auth/users/sign_in")).toBeNull();
   });
 
   it("parses functions, options and raw device page state", () => {
@@ -201,6 +206,52 @@ describe("One2TrackClient", () => {
       });
 
     await expect(client.authenticate(true)).rejects.toBeInstanceOf(AuthenticationError);
+  });
+
+  it("treats a redirect back to sign_in after login as an authentication failure", async () => {
+    const client = new One2TrackClient({
+      accountId: "",
+      username: "user",
+      password: "wrong",
+    });
+
+    nock(baseUrl)
+      .get("/auth/users/sign_in")
+      .reply(200, loginHtml, {
+        "content-type": "text/html",
+        "set-cookie": "_iadmin=session-prelogin; Path=/;",
+      });
+
+    nock(baseUrl)
+      .post("/auth/users/sign_in")
+      .reply(302, "", {
+        location: "https://www.one2trackgps.com/auth/users/sign_in",
+      });
+
+    await expect(client.authenticate(true)).rejects.toBeInstanceOf(AuthenticationError);
+  });
+
+  it("accepts an account id directly from the login redirect", async () => {
+    const client = new One2TrackClient({
+      accountId: "",
+      username: "user",
+      password: "secret",
+    });
+
+    nock(baseUrl)
+      .get("/auth/users/sign_in")
+      .reply(200, loginHtml, {
+        "content-type": "text/html",
+        "set-cookie": "_iadmin=session-prelogin; Path=/;",
+      });
+
+    nock(baseUrl)
+      .post("/auth/users/sign_in")
+      .reply(302, "", {
+        location: "/users/account-123/devices",
+      });
+
+    await expect(client.authenticate(true)).resolves.toBe("account-123");
   });
 
   it("sends a message and device commands", async () => {

@@ -64,9 +64,22 @@ export function extractAccountIdFromRedirect(location: string | undefined): stri
     throw new ParseError("Missing redirect location for account discovery");
   }
 
-  const match = location.match(/\/users\/([^/]+)\//);
+  const accountId = tryExtractAccountId(location);
+  if (accountId) {
+    return accountId;
+  }
+
+  throw new ParseError(`Could not extract account id from redirect: ${location}`);
+}
+
+export function tryExtractAccountId(value: string | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const match = value.match(/\/users\/([^/]+)\//);
   if (!match) {
-    throw new ParseError(`Could not extract account id from redirect: ${location}`);
+    return null;
   }
 
   return match[1];
@@ -249,9 +262,57 @@ export class One2TrackClient {
       throw new AuthenticationError("One2Track rejected the supplied credentials");
     }
 
+    const loginRedirectLocation = loginResponse.headers.location;
+    if (loginRedirectLocation?.includes("/auth/users/sign_in")) {
+      throw new AuthenticationError("One2Track redirected back to sign in after login");
+    }
+
+    const accountIdFromLoginRedirect = tryExtractAccountId(loginRedirectLocation);
+    if (accountIdFromLoginRedirect) {
+      this.accountId = accountIdFromLoginRedirect;
+      this.authenticated = true;
+      this.log("Authenticated upstream session from login redirect", {
+        accountId: this.accountId,
+      }, {
+        accountId: this.accountId,
+        username: this.username,
+      });
+      return this.accountId;
+    }
+
     const accountRedirect = await this.request(BASE_URL, {
       followRedirect: false,
     });
+
+    const accountIdFromBaseRedirect = tryExtractAccountId(accountRedirect.headers.location);
+    if (accountIdFromBaseRedirect) {
+      this.accountId = accountIdFromBaseRedirect;
+      this.authenticated = true;
+      this.log("Authenticated upstream session", {
+        accountId: this.accountId,
+      }, {
+        accountId: this.accountId,
+        username: this.username,
+      });
+      return this.accountId;
+    }
+
+    if (accountRedirect.headers.location?.includes("/auth/users/sign_in")) {
+      throw new AuthenticationError("One2Track redirected back to sign in after login");
+    }
+
+    const accountIdFromBody = tryExtractAccountId(accountRedirect.body);
+    if (accountIdFromBody) {
+      this.accountId = accountIdFromBody;
+      this.authenticated = true;
+      this.log("Authenticated upstream session from account page body", {
+        accountId: this.accountId,
+      }, {
+        accountId: this.accountId,
+        username: this.username,
+      });
+      return this.accountId;
+    }
 
     this.accountId = extractAccountIdFromRedirect(accountRedirect.headers.location);
     this.authenticated = true;

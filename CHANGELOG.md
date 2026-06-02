@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.1
+- Improved One2Track login handling when the upstream site redirects back to the sign-in page instead of returning an account redirect.
+
 ## 1.2.0
 - Added a Send Debug To Developer option for detailed debugging.
 
