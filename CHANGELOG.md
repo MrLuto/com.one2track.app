@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.0
+- Added a Send Debug To Developer option for detailed debugging.
+
 ## 1.0.2
 - Raised the minimum Homey version to 12.0.1 for dynamic enum capability options.
 - Replaced the app image with a compliant Homey App Store image without phone app mockups.

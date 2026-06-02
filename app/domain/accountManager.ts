@@ -3,6 +3,7 @@ import { EventEmitter } from "node:events";
 import { COMMAND_CODES } from "./commands";
 import { AuthenticationError, ParseError } from "./errors";
 import { normalizeTrackerPayload } from "./normalize";
+import type { DebugContext } from "../infra/debugLogger";
 import { One2TrackClient } from "../infra/one2trackClient";
 import type {
   AccountCredentials,
@@ -18,7 +19,7 @@ import type {
   TrackerUpdateEvent,
 } from "./types";
 
-type Logger = (...args: unknown[]) => void;
+type DebugReporter = (source: string, message: string, data?: unknown, context?: DebugContext) => void;
 
 type HomeySettingsHost = {
   settings: {
@@ -125,7 +126,11 @@ export class AccountManager extends EventEmitter<ManagerEvents> {
   private readonly accounts = new Map<string, AccountRecord>();
   private readonly persistedState: PersistedTrackerState;
 
-  constructor(private readonly homey: HomeySettingsHost, private readonly logger: Logger) {
+  constructor(
+    private readonly homey: HomeySettingsHost,
+    private readonly logger: DebugReporter,
+    private readonly errorLogger: DebugReporter,
+  ) {
     super();
     this.persistedState = (this.homey.settings.get(TRACKER_STATE_SETTINGS_KEY) as PersistedTrackerState | undefined) ?? {
       capabilityProfiles: {},
@@ -148,11 +153,23 @@ export class AccountManager extends EventEmitter<ManagerEvents> {
     record.deviceIds.add(deviceId);
     this.persistAccounts();
     this.ensurePolling(record);
+    this.logger("account-manager", "Registered device for account polling", {
+      deviceId,
+      accountId: record.accountId,
+      username: record.username,
+      trackedDevices: record.deviceIds.size,
+    }, {
+      accountId: record.accountId,
+      username: record.username,
+    });
 
     try {
       await this.refreshAccount(record.accountId, record.username);
     } catch (error) {
-      this.logger(`[one2track] initial refresh failed for account ${record.accountId}:`, error);
+      this.errorLogger("account-manager", "Initial refresh failed", error, {
+        accountId: record.accountId,
+        username: record.username,
+      });
     }
 
     return key;
@@ -165,6 +182,14 @@ export class AccountManager extends EventEmitter<ManagerEvents> {
       }
 
       record.deviceIds.delete(deviceId);
+      this.logger("account-manager", "Unregistered device from account polling", {
+        deviceId,
+        accountId: record.accountId,
+        trackedDevices: record.deviceIds.size,
+      }, {
+        accountId: record.accountId,
+        username: record.username,
+      });
 
       if (record.deviceIds.size === 0) {
         if (record.pollTimer) {
@@ -224,10 +249,18 @@ export class AccountManager extends EventEmitter<ManagerEvents> {
     }
 
     if (record.refreshInFlight) {
+      this.logger("account-manager", "Refresh already in flight, waiting", undefined, {
+        accountId,
+        username,
+      });
       await record.refreshInFlight;
       return;
     }
 
+    this.logger("account-manager", "Refreshing account", undefined, {
+      accountId,
+      username,
+    });
     record.refreshInFlight = this.doRefresh(record).finally(() => {
       record.refreshInFlight = null;
     });
@@ -239,6 +272,14 @@ export class AccountManager extends EventEmitter<ManagerEvents> {
     const record = this.getRecord(accountId, username);
     const profile = await this.ensureCapabilityProfile(record, trackerUuid);
     const cache = record.settingsCache.get(trackerUuid) ?? createEmptySettingsCache();
+    this.logger("account-manager", "Refreshing settings cache", {
+      trackerUuid,
+      supportedCodes: profile.codes,
+    }, {
+      accountId,
+      username,
+      trackerUuid,
+    });
 
     if (profile.codes.phonebook) {
       cache.phonebook = sanitizePhonebook(await record.client.fetchFormValues(trackerUuid, profile.codes.phonebook));
@@ -263,21 +304,48 @@ export class AccountManager extends EventEmitter<ManagerEvents> {
     cache.synced = true;
     record.settingsCache.set(trackerUuid, cache);
     this.persistTrackerState(record);
+    this.logger("account-manager", "Refreshed settings cache", cache, {
+      accountId,
+      username,
+      trackerUuid,
+    });
     return cache;
   }
 
   async sendMessage(accountId: string, username: string, trackerUuid: string, message: string): Promise<void> {
     const record = this.getRecord(accountId, username);
+    this.logger("account-manager", "Sending tracker message", {
+      trackerUuid,
+      message,
+    }, {
+      accountId,
+      username,
+      trackerUuid,
+    });
     await record.client.sendMessage(trackerUuid, message);
   }
 
   async forceUpdate(accountId: string, username: string, trackerUuid: string): Promise<void> {
     const record = this.getRecord(accountId, username);
+    this.logger("account-manager", "Requesting tracker refresh", {
+      trackerUuid,
+    }, {
+      accountId,
+      username,
+      trackerUuid,
+    });
     await record.client.forceUpdate(trackerUuid);
   }
 
   async findDevice(accountId: string, username: string, trackerUuid: string): Promise<void> {
     const record = this.getRecord(accountId, username);
+    this.logger("account-manager", "Requesting find-device command", {
+      trackerUuid,
+    }, {
+      accountId,
+      username,
+      trackerUuid,
+    });
     await record.client.findDevice(trackerUuid);
   }
 
@@ -289,6 +357,15 @@ export class AccountManager extends EventEmitter<ManagerEvents> {
     values: string[] = [],
   ): Promise<void> {
     const record = this.getRecord(accountId, username);
+    this.logger("account-manager", "Sending command", {
+      trackerUuid,
+      commandCode,
+      values,
+    }, {
+      accountId,
+      username,
+      trackerUuid,
+    });
     await record.client.sendCommand(trackerUuid, commandCode, values);
   }
 
@@ -312,12 +389,24 @@ export class AccountManager extends EventEmitter<ManagerEvents> {
     next.synced = true;
     record.settingsCache.set(trackerUuid, next);
     this.persistTrackerState(record);
+    this.logger("account-manager", "Updated local settings cache", next, {
+      accountId,
+      username,
+      trackerUuid,
+    });
     return next;
   }
 
   private async doRefresh(record: AccountRecord): Promise<void> {
     try {
       const rawDevices = await record.client.refreshDeviceList();
+      this.logger("account-manager", "Fetched device list", {
+        count: rawDevices.length,
+        trackerUuids: rawDevices.map((device) => device.uuid),
+      }, {
+        accountId: record.accountId,
+        username: record.username,
+      });
 
       for (const rawDevice of rawDevices) {
         record.rawDevices.set(rawDevice.uuid, rawDevice);
@@ -335,7 +424,12 @@ export class AccountManager extends EventEmitter<ManagerEvents> {
           try {
             await this.refreshSettingsCache(record.accountId, record.username, rawDevice.uuid);
           } catch (error) {
-            this.logger(`[one2track] could not sync settings cache for ${rawDevice.uuid}:`, error);
+            this.errorLogger("account-manager", "Could not sync settings cache", error, {
+              accountId: record.accountId,
+              username: record.username,
+              trackerUuid: rawDevice.uuid,
+              deviceName: rawDevice.name,
+            });
           }
         }
 
@@ -348,6 +442,19 @@ export class AccountManager extends EventEmitter<ManagerEvents> {
 
         const previousSnapshot = record.snapshots.get(snapshot.trackerUuid) ?? null;
         record.snapshots.set(snapshot.trackerUuid, snapshot);
+        this.logger("account-manager", "Normalized tracker snapshot", {
+          name: snapshot.name,
+          status: snapshot.status,
+          latitude: snapshot.latitude,
+          longitude: snapshot.longitude,
+          batteryPercentage: snapshot.batteryPercentage,
+          lastLocationUpdate: snapshot.lastLocationUpdate,
+        }, {
+          accountId: record.accountId,
+          username: record.username,
+          trackerUuid: snapshot.trackerUuid,
+          deviceName: snapshot.name,
+        });
         this.emit("snapshot", {
           accountKey: record.key,
           trackerUuid: snapshot.trackerUuid,
@@ -361,6 +468,13 @@ export class AccountManager extends EventEmitter<ManagerEvents> {
       record.lastError = null;
 
       if (wasErroring) {
+        this.logger("account-manager", "Account recovered after previous error", {
+          trackerCount: record.snapshots.size,
+          lastSuccessfulSyncAt: record.lastSuccessfulSyncAt,
+        }, {
+          accountId: record.accountId,
+          username: record.username,
+        });
         this.emit("account_recovered", {
           accountId: record.accountId,
           lastSuccessfulSyncAt: record.lastSuccessfulSyncAt,
@@ -370,6 +484,10 @@ export class AccountManager extends EventEmitter<ManagerEvents> {
       }
     } catch (error) {
       record.lastError = error instanceof Error ? error.message : String(error);
+      this.errorLogger("account-manager", "Refresh failed", error, {
+        accountId: record.accountId,
+        username: record.username,
+      });
       this.emit("account_error", {
         accountId: record.accountId,
         lastSuccessfulSyncAt: record.lastSuccessfulSyncAt,
@@ -398,7 +516,7 @@ export class AccountManager extends EventEmitter<ManagerEvents> {
       username: credentials.username,
       password: credentials.password,
       key,
-      client: new One2TrackClient(credentials),
+      client: new One2TrackClient(credentials, this.logger, this.errorLogger),
       deviceIds: new Set<string>(),
       snapshots: new Map<string, TrackerSnapshot>(),
       rawDevices: new Map<string, RawTrackerDevice>(),
@@ -426,9 +544,21 @@ export class AccountManager extends EventEmitter<ManagerEvents> {
       return existing;
     }
 
+    this.logger("account-manager", "Discovering capability profile", {
+      trackerUuid,
+    }, {
+      accountId: record.accountId,
+      username: record.username,
+      trackerUuid,
+    });
     const profile = await record.client.discoverCapabilityProfile(trackerUuid);
     record.capabilityProfiles.set(trackerUuid, profile);
     this.persistTrackerState(record);
+    this.logger("account-manager", "Discovered capability profile", profile, {
+      accountId: record.accountId,
+      username: record.username,
+      trackerUuid,
+    });
     return profile;
   }
 
@@ -439,7 +569,10 @@ export class AccountManager extends EventEmitter<ManagerEvents> {
 
     record.pollTimer = setInterval(() => {
       void this.refreshAccount(record.accountId, record.username).catch((error) => {
-        this.logger(`[one2track] refresh failed for ${record.accountId}:`, error);
+        this.errorLogger("account-manager", "Scheduled refresh failed", error, {
+          accountId: record.accountId,
+          username: record.username,
+        });
       });
     }, POLL_INTERVAL_MS);
   }

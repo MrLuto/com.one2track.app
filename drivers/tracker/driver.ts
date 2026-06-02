@@ -60,11 +60,18 @@ class One2TrackDriver extends Homey.Driver {
 
   async onPair(session: Homey.Driver.PairSession): Promise<void> {
     session.setHandler("login", async ({ username, password }: LoginData): Promise<boolean> => {
-      const client = new One2TrackClient({
-        accountId: "",
+      this.appInstance.debug("pairing", "Pair login requested", {
         username,
-        password,
       });
+      const client = new One2TrackClient(
+        {
+          accountId: "",
+          username,
+          password,
+        },
+        this.appInstance.debug.bind(this.appInstance),
+        this.appInstance.debugError.bind(this.appInstance),
+      );
 
       try {
         const accountId = await client.authenticate(true);
@@ -80,8 +87,17 @@ class One2TrackDriver extends Homey.Driver {
           })),
         };
 
+        this.appInstance.debug("pairing", "Pair login succeeded", {
+          username,
+          accountId,
+          deviceCount: devices.length,
+          trackerUuids: devices.map((device) => device.uuid),
+        });
         return true;
       } catch (error) {
+        this.appInstance.debugError("pairing", "Pair login failed", error, {
+          username,
+        });
         this.error("Pair login failed", error);
         if (error instanceof AuthenticationError) {
           return false;
@@ -96,6 +112,11 @@ class One2TrackDriver extends Homey.Driver {
         throw new AuthenticationError("No One2Track session is available for pairing");
       }
 
+      this.appInstance.debug("pairing", "Listing pairable devices", {
+        accountId: this.pairContext.accountId,
+        deviceCount: this.pairContext.devices.length,
+      });
+
       const account = {
         accountId: this.pairContext.accountId,
         username: this.pairContext.username,
@@ -109,11 +130,21 @@ class One2TrackDriver extends Homey.Driver {
   async onRepair(session: Homey.Driver.PairSession, device: One2TrackDevice): Promise<void> {
     session.setHandler("repair_credentials", async ({ username, password }: LoginData) => {
       const currentStore = device.getStore();
-      const client = new One2TrackClient({
-        accountId: String(currentStore.accountId ?? ""),
+      this.appInstance.debug("repair", "Repair credentials requested", {
         username,
-        password,
+      }, {
+        deviceName: device.getName(),
+        trackerUuid: String(currentStore.trackerUuid ?? ""),
       });
+      const client = new One2TrackClient(
+        {
+          accountId: String(currentStore.accountId ?? ""),
+          username,
+          password,
+        },
+        this.appInstance.debug.bind(this.appInstance),
+        this.appInstance.debugError.bind(this.appInstance),
+      );
 
       const accountId = await client.authenticate(true);
       await this.appInstance.accountManager.replaceDeviceAccount(String(device.getData().id), {
@@ -123,6 +154,13 @@ class One2TrackDriver extends Homey.Driver {
       });
 
       await device.updateSharedCredentials(accountId, username, password);
+      this.appInstance.debug("repair", "Repair credentials succeeded", {
+        username,
+        accountId,
+      }, {
+        deviceName: device.getName(),
+        trackerUuid: String(currentStore.trackerUuid ?? ""),
+      });
       return { success: true };
     });
   }

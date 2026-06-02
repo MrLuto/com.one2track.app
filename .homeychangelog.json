@@ -28,5 +28,8 @@
   },
   "1.1.0": {
     "en": "Added advanced One2Track flows for battery and SIM thresholds, stale location detection, speed and steps thresholds, custom zone entry and exit, Homey distance checks, stationary detection, and GPS/profile mode flow actions."
+  },
+  "1.2.0": {
+    "en": "Added a Send Debug To Developer option for detailed debugging."
   }
 }

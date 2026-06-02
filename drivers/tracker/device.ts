@@ -66,6 +66,10 @@ class One2TrackDevice extends Homey.Device {
       return;
     }
 
+    this.appInstance.debug("snapshot", "Received snapshot event", {
+      trackerUuid: event.trackerUuid,
+      hasPreviousSnapshot: Boolean(event.previousSnapshot),
+    }, this.getDebugContext());
     await this.applySnapshot(event.snapshot, event.previousSnapshot);
   };
 
@@ -74,6 +78,7 @@ class One2TrackDevice extends Homey.Device {
       return;
     }
 
+    this.appInstance.debugError("device", "Account error received", diagnostics, this.getDebugContext());
     await this.updateDiagnosticSettings(diagnostics);
     await this.setUnavailable(diagnostics.lastError ?? "One2Track account unavailable");
   };
@@ -83,6 +88,7 @@ class One2TrackDevice extends Homey.Device {
       return;
     }
 
+    this.appInstance.debug("device", "Account recovered", diagnostics, this.getDebugContext());
     await this.updateDiagnosticSettings(diagnostics);
     await this.setAvailable();
   };
@@ -99,6 +105,16 @@ class One2TrackDevice extends Homey.Device {
     if (!this.accountId || !this.username || !this.password || !this.trackerUuid) {
       throw new AuthenticationError("Device store misses One2Track credentials");
     }
+
+    this.appInstance.debug("device", "Initializing tracker device", {
+      accountId: this.accountId,
+      trackerUuid: this.trackerUuid,
+    }, {
+      accountId: this.accountId,
+      username: this.username,
+      trackerUuid: this.trackerUuid,
+      deviceName: this.getName(),
+    });
 
     await this.appInstance.accountManager.registerDevice(this.getDeviceId(), {
       accountId: this.accountId,
@@ -124,22 +140,42 @@ class One2TrackDevice extends Homey.Device {
   }
 
   async onDeleted(): Promise<void> {
+    this.appInstance.debug("device", "Deleting tracker device", undefined, this.getDebugContext());
     this.appInstance.accountManager.off("snapshot", this.onSnapshot);
     this.appInstance.accountManager.off("account_error", this.onAccountError);
     this.appInstance.accountManager.off("account_recovered", this.onAccountRecovered);
     await this.appInstance.accountManager.unregisterDevice(this.getDeviceId());
   }
 
+  async onSettings({
+    oldSettings,
+    newSettings,
+    changedKeys,
+  }: {
+    oldSettings: Record<string, unknown>;
+    newSettings: Record<string, unknown>;
+    changedKeys: string[];
+  }): Promise<string | void> {
+    this.appInstance.debug("device-settings", "Device settings updated", {
+      changedKeys,
+      oldSettings,
+      newSettings,
+    }, this.getDebugContext());
+  }
+
   async sendMessage(message: string): Promise<void> {
+    this.appInstance.debug("device-command", "sendMessage requested", { message }, this.getDebugContext());
     await this.appInstance.accountManager.sendMessage(this.accountId, this.username, this.trackerUuid, message);
   }
 
   async forceUpdate(): Promise<void> {
+    this.appInstance.debug("device-command", "forceUpdate requested", undefined, this.getDebugContext());
     await this.appInstance.accountManager.forceUpdate(this.accountId, this.username, this.trackerUuid);
   }
 
   async findDevice(): Promise<void> {
     this.requireProfileFlag((profile) => profile.supportFlags.canFindDevice, "Find device is unavailable");
+    this.appInstance.debug("device-command", "findDevice requested", undefined, this.getDebugContext());
     await this.appInstance.accountManager.findDevice(this.accountId, this.username, this.trackerUuid);
   }
 
@@ -408,6 +444,10 @@ class One2TrackDevice extends Homey.Device {
     this.accountId = accountId;
     this.username = username;
     this.password = password;
+    this.appInstance.debug("device", "Updating shared credentials", {
+      accountId,
+      username,
+    }, this.getDebugContext());
     await this.setStoreValue("accountId", accountId);
     await this.setStoreValue("username", username);
     await this.setStoreValue("password", password);
@@ -435,6 +475,21 @@ class One2TrackDevice extends Homey.Device {
 
     const currentStationaryMinutes =
       this.stationarySinceMs !== null ? Math.max(0, (observedAtMs - this.stationarySinceMs) / 60_000) : null;
+
+    this.appInstance.debug("snapshot", "Applying tracker snapshot", {
+      changes,
+      status: snapshot.status,
+      latitude: snapshot.latitude,
+      longitude: snapshot.longitude,
+      batteryPercentage: snapshot.batteryPercentage,
+      previousAgeMinutes,
+      currentAgeMinutes,
+      previousStationaryMinutes,
+      currentStationaryMinutes,
+    }, {
+      ...this.getDebugContext(),
+      deviceName: snapshot.name,
+    });
 
     await this.syncDynamicCapabilities(snapshot);
     await this.setAvailable();
@@ -552,6 +607,14 @@ class One2TrackDevice extends Homey.Device {
       return;
     }
 
+    this.appInstance.debug("capabilities", "Syncing dynamic capabilities", {
+      supportFlags: profile.supportFlags,
+    }, {
+      ...this.getDebugContext(),
+      deviceName: snapshot.name,
+      trackerUuid: snapshot.trackerUuid,
+    });
+
     if (snapshot.headingDegrees !== null) {
       await this.ensureCapability("measure_heading");
     }
@@ -599,6 +662,7 @@ class One2TrackDevice extends Homey.Device {
 
   private async ensureCapability(capability: CapabilityKey): Promise<void> {
     if (!this.hasCapability(capability)) {
+      this.appInstance.debug("capabilities", "Adding capability", { capability }, this.getDebugContext());
       await this.addCapability(capability);
     }
   }
@@ -612,20 +676,36 @@ class One2TrackDevice extends Homey.Device {
     }
 
     this.registerCapabilityListener(capability, async (value: unknown) => {
+      this.appInstance.debug("capability-listener", "Capability listener invoked", {
+        capability,
+        value,
+      }, this.getDebugContext());
       await listener(value);
     });
     this.registeredDynamicListeners.add(capability);
+    this.appInstance.debug("capability-listener", "Capability listener registered", {
+      capability,
+    }, this.getDebugContext());
   }
 
   private async setCapabilitySafely(capability: CapabilityKey, value: boolean | number | string): Promise<void> {
     try {
+      this.appInstance.debug("capability-update", "Updating capability", {
+        capability,
+        value,
+      }, this.getDebugContext());
       await this.setCapabilityValue(capability, value);
     } catch (error) {
+      this.appInstance.debugError("capability-update", "Could not update capability", {
+        capability,
+        error,
+      }, this.getDebugContext());
       this.error(`Could not update capability ${capability}`, error);
     }
   }
 
   private async updateDiagnosticSettings(diagnostics: AccountDiagnostics): Promise<void> {
+    this.appInstance.debug("device-settings", "Updating diagnostic settings", diagnostics, this.getDebugContext());
     await this.setSettings({
       account_id: diagnostics.accountId,
       last_sync_at: diagnostics.lastSuccessfulSyncAt ?? "-",
@@ -634,6 +714,14 @@ class One2TrackDevice extends Homey.Device {
   }
 
   private async updateSnapshotSettings(snapshot: TrackerSnapshot, diagnostics: AccountDiagnostics | null): Promise<void> {
+    this.appInstance.debug("device-settings", "Updating snapshot settings", {
+      snapshot,
+      diagnostics,
+    }, {
+      ...this.getDebugContext(),
+      deviceName: snapshot.name,
+      trackerUuid: snapshot.trackerUuid,
+    });
     await this.setSettings({
       account_id: this.accountId,
       serial_number: snapshot.serialNumber,
@@ -700,9 +788,11 @@ class One2TrackDevice extends Homey.Device {
   private async requireSyncedSettings(): Promise<TrackerSettingsCache> {
     const current = this.appInstance.accountManager.getSettingsCache(this.accountId, this.username, this.trackerUuid);
     if (current?.synced) {
+      this.appInstance.debug("device-settings", "Using cached synced settings", current, this.getDebugContext());
       return current;
     }
 
+    this.appInstance.debug("device-settings", "Refreshing unsynced settings cache", undefined, this.getDebugContext());
     return this.appInstance.accountManager.refreshSettingsCache(this.accountId, this.username, this.trackerUuid);
   }
 
@@ -715,6 +805,10 @@ class One2TrackDevice extends Homey.Device {
       this.requireProfileFlag(supportCheck, `Device does not support command ${commandCode}`);
     }
 
+    this.appInstance.debug("device-command", "sendCommand requested", {
+      commandCode,
+      values,
+    }, this.getDebugContext());
     await this.appInstance.accountManager.sendCommand(
       this.accountId,
       this.username,
@@ -739,6 +833,20 @@ class One2TrackDevice extends Homey.Device {
 
   private getDeviceId(): string {
     return String(this.getData().id);
+  }
+
+  private getDebugContext(): {
+    accountId: string;
+    username: string;
+    trackerUuid: string;
+    deviceName: string;
+  } {
+    return {
+      accountId: this.accountId,
+      username: this.username,
+      trackerUuid: this.trackerUuid,
+      deviceName: this.getName(),
+    };
   }
 }
 

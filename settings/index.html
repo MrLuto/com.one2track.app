@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>One2Track Settings</title>
+    <script type="text/javascript" src="/homey.js" data-origin="settings"></script>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      body {
+        margin: 0;
+        padding: 24px;
+        background: #f3f6f7;
+        color: #17323c;
+      }
+
+      .panel {
+        max-width: 520px;
+        padding: 20px;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 0 8px 30px rgba(23, 50, 60, 0.08);
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 24px;
+      }
+
+      p {
+        margin: 0 0 16px;
+        line-height: 1.5;
+      }
+
+      .toggle {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin: 20px 0 12px;
+      }
+
+      .status {
+        font-size: 14px;
+        color: #40606c;
+      }
+
+      .field {
+        margin: 16px 0;
+      }
+
+      .field label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .field input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        border: 1px solid #c8d4d9;
+        border-radius: 10px;
+        background: #f8fbfc;
+        color: #17323c;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+
+      .warning {
+        margin-top: 16px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: #fff3da;
+        color: #704d00;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="panel">
+      <h1>Debug logging</h1>
+      <p>
+        Zet debug aan om uitgebreide app-activiteit door te sturen naar de ontwikkelaar. Dit omvat acties,
+        synchronisaties, flow-runs, commands en netwerkverkeer. Gevoelige velden zoals wachtwoorden en tokens worden
+        afgeschermd.
+      </p>
+
+      <label class="toggle" for="debug-enabled">
+        <input id="debug-enabled" type="checkbox" />
+        <span>Debugmodus inschakelen</span>
+      </label>
+
+      <div class="field">
+        <label for="debug-cid">Debug CID</label>
+        <input id="debug-cid" type="text" readonly />
+      </div>
+
+      <div class="status" id="status-text">Instellingen laden...</div>
+
+      <div class="warning">
+        Debuglogging kan veel verkeer genereren zolang deze optie aan staat.
+      </div>
+    </main>
+
+    <script>
+      function setStatus(message) {
+        document.getElementById("status-text").textContent = message;
+      }
+
+      function generateCid() {
+        const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        const values = new Uint8Array(10);
+        crypto.getRandomValues(values);
+        return Array.from(values, function (value) {
+          return alphabet[value % alphabet.length];
+        }).join("");
+      }
+
+      function onHomeyReady(Homey) {
+        const checkbox = document.getElementById("debug-enabled");
+        const cidInput = document.getElementById("debug-cid");
+
+        Homey.get("debug_cid", function (cidError, cidValue) {
+          if (cidError) {
+            setStatus("Kon debug-CID niet laden.");
+            Homey.ready();
+            return;
+          }
+
+          const cid = typeof cidValue === "string" && cidValue.trim() !== "" ? cidValue : generateCid();
+          cidInput.value = cid;
+
+          if (cid !== cidValue) {
+            Homey.set("debug_cid", cid, function (setCidError) {
+              if (setCidError) {
+                setStatus("Kon debug-CID niet opslaan.");
+              }
+            });
+          }
+        });
+
+        Homey.get("debug_enabled", function (error, enabled) {
+          if (error) {
+            setStatus("Kon debuginstelling niet laden.");
+            Homey.ready();
+            return;
+          }
+
+          checkbox.checked = enabled === true;
+          setStatus(checkbox.checked ? "Debug staat aan." : "Debug staat uit.");
+          Homey.ready();
+        });
+
+        checkbox.addEventListener("change", function () {
+          const enabled = checkbox.checked;
+          Homey.set("debug_enabled", enabled, function (error) {
+            if (error) {
+              checkbox.checked = !enabled;
+              setStatus("Opslaan mislukt.");
+              return;
+            }
+
+            setStatus(enabled ? "Debug staat aan." : "Debug staat uit.");
+          });
+        });
+      }
+    </script>
+  </body>
+</html>

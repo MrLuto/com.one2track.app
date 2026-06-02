@@ -2,6 +2,7 @@ import { CookieJar } from "tough-cookie";
 
 import { buildCapabilityProfile, COMMAND_CODES } from "../domain/commands";
 import { AuthenticationError, ParseError, RateLimitError, TransportError } from "../domain/errors";
+import type { DebugContext } from "./debugLogger";
 import type {
   AccountCredentials,
   CommandOption,
@@ -15,6 +16,8 @@ const BASE_URL = "https://www.one2trackgps.com";
 const LOGIN_URL = `${BASE_URL}/auth/users/sign_in`;
 const ALTERNATIVE_SESSION_COOKIE = "_session_id";
 const OPTION_DISCOVERY_CODES = [...new Set(["1116", "0077", "0078", "0079", "0082"])];
+
+type DebugReporter = (source: string, message: string, data?: unknown, context?: DebugContext) => void;
 
 type TextResponse = {
   statusCode: number;
@@ -195,7 +198,11 @@ export class One2TrackClient {
   private accountId: string;
   private authenticated = false;
 
-  constructor(credentials: AccountCredentials) {
+  constructor(
+    credentials: AccountCredentials,
+    private readonly logger?: DebugReporter,
+    private readonly errorLogger?: DebugReporter,
+  ) {
     this.username = credentials.username;
     this.password = credentials.password;
     this.accountId = credentials.accountId;
@@ -205,13 +212,22 @@ export class One2TrackClient {
     this.password = credentials.password;
     this.accountId = credentials.accountId;
     this.authenticated = false;
+    this.log("Updated client credentials", undefined, {
+      accountId: credentials.accountId,
+      username: credentials.username,
+    });
   }
 
   async authenticate(force = false): Promise<string> {
     if (this.authenticated && !force) {
+      this.log("Reusing authenticated session");
       return this.accountId;
     }
 
+    this.log("Authenticating upstream session", { force }, {
+      accountId: this.accountId,
+      username: this.username,
+    });
     const loginPageResponse = await this.request(LOGIN_URL);
     const csrfToken = parseCsrfTokenFromHtml(loginPageResponse.body);
 
@@ -239,11 +255,21 @@ export class One2TrackClient {
 
     this.accountId = extractAccountIdFromRedirect(accountRedirect.headers.location);
     this.authenticated = true;
+    this.log("Authenticated upstream session", {
+      accountId: this.accountId,
+    }, {
+      accountId: this.accountId,
+      username: this.username,
+    });
     return this.accountId;
   }
 
   async refreshDeviceList(): Promise<RawTrackerDevice[]> {
     return this.withAuthenticatedRetry(async () => {
+      this.log("Fetching device list", undefined, {
+        accountId: this.accountId,
+        username: this.username,
+      });
       const response = await this.request(`${BASE_URL}/users/${this.accountId}/devices`, {
         headers: {
           accept: "application/json",
@@ -267,29 +293,48 @@ export class One2TrackClient {
         throw new ParseError("One2Track device response is not an array");
       }
 
-      return payload.map((entry) => {
+      const devices = payload.map((entry) => {
         if (!entry || typeof entry !== "object" || !("device" in entry)) {
           throw new ParseError("One2Track device list entry is missing a device payload");
         }
 
         return (entry as { device: RawTrackerDevice }).device;
       });
+
+      this.log("Fetched device list", {
+        count: devices.length,
+        trackerUuids: devices.map((device) => device.uuid),
+      }, {
+        accountId: this.accountId,
+        username: this.username,
+      });
+      return devices;
     });
   }
 
   async fetchDeviceState(deviceUuid: string): Promise<RawDevicePageState | null> {
     return this.withAuthenticatedRetry(async () => {
+      this.log("Fetching device state page", undefined, this.createContext(deviceUuid));
       const response = await this.request(`${BASE_URL}/devices/${deviceUuid}`);
       if (looksLikeHtmlDocument(response.body)) {
-        return parseDevicePage(response.body);
+        const parsed = parseDevicePage(response.body);
+        this.log("Fetched device state page", {
+          hasDevicePayload: Boolean(parsed.device),
+          hasLocationPayload: Boolean(parsed.last_location),
+        }, this.createContext(deviceUuid));
+        return parsed;
       }
 
+      this.log("Device state page did not return HTML", {
+        statusCode: response.statusCode,
+      }, this.createContext(deviceUuid));
       return null;
     });
   }
 
   async discoverCapabilityProfile(deviceUuid: string): Promise<TrackerCapabilityProfile> {
     return this.withAuthenticatedRetry(async () => {
+      this.log("Discovering capability profile", undefined, this.createContext(deviceUuid));
       const response = await this.request(`${BASE_URL}/devices/${deviceUuid}/functions?list_only=true`);
       const functions = parseFunctionsList(response.body);
       const options: Record<string, CommandOption[]> = {};
@@ -308,16 +353,29 @@ export class One2TrackClient {
         }
       }
 
-      return buildCapabilityProfile(functions, options);
+      const profile = buildCapabilityProfile(functions, options);
+      this.log("Discovered capability profile", {
+        functionCount: Object.keys(functions).length,
+        optionGroups: Object.keys(options),
+      }, this.createContext(deviceUuid));
+      return profile;
     });
   }
 
   async fetchFormValues(deviceUuid: string, commandCode: string): Promise<string[]> {
     return this.withAuthenticatedRetry(async () => {
+      this.log("Fetching form values", {
+        commandCode,
+      }, this.createContext(deviceUuid));
       const response = await this.request(
         `${BASE_URL}/devices/${deviceUuid}/functions?function=${commandCode}&list_only=true&modal=true`,
       );
-      return parseFormValues(response.body);
+      const values = parseFormValues(response.body);
+      this.log("Fetched form values", {
+        commandCode,
+        valueCount: values.length,
+      }, this.createContext(deviceUuid));
+      return values;
     });
   }
 
@@ -326,6 +384,7 @@ export class One2TrackClient {
     localSettings: TrackerDiagnostics["localSettings"] = null,
     capabilityProfile: TrackerCapabilityProfile | null = null,
   ): Promise<TrackerDiagnostics> {
+    this.log("Collecting raw device diagnostics", undefined, this.createContext(deviceUuid));
     const [jsonApi] = (await this.refreshDeviceList()).filter((device) => device.uuid === deviceUuid);
     const htmlState = await this.fetchDeviceState(deviceUuid);
     const discoveredProfile = capabilityProfile ?? (await this.discoverCapabilityProfile(deviceUuid));
@@ -340,6 +399,7 @@ export class One2TrackClient {
 
   async sendMessage(deviceUuid: string, message: string): Promise<void> {
     await this.withAuthenticatedRetry(async () => {
+      this.log("Sending upstream message", { message }, this.createContext(deviceUuid));
       const csrfToken = await this.fetchActionCsrfToken();
       const response = await this.request(`${BASE_URL}/devices/${deviceUuid}/messages`, {
         method: "POST",
@@ -358,6 +418,10 @@ export class One2TrackClient {
       if (response.statusCode !== 200) {
         throw new TransportError(`One2Track message endpoint returned ${response.statusCode}`);
       }
+
+      this.log("Sent upstream message", {
+        statusCode: response.statusCode,
+      }, this.createContext(deviceUuid));
     });
   }
 
@@ -371,6 +435,10 @@ export class One2TrackClient {
 
   async sendCommand(deviceUuid: string, commandCode: string, values: string[] = []): Promise<void> {
     await this.withAuthenticatedRetry(async () => {
+      this.log("Sending upstream command", {
+        commandCode,
+        values,
+      }, this.createContext(deviceUuid));
       const csrfToken = await this.fetchActionCsrfToken();
       const form: Array<[string, string]> = [
         ["utf8", "✓"],
@@ -402,6 +470,11 @@ export class One2TrackClient {
       if (![200, 204, 406].includes(response.statusCode)) {
         throw new TransportError(`One2Track command ${commandCode} returned ${response.statusCode}`);
       }
+
+      this.log("Sent upstream command", {
+        commandCode,
+        statusCode: response.statusCode,
+      }, this.createContext(deviceUuid));
     });
   }
 
@@ -415,6 +488,10 @@ export class One2TrackClient {
         throw error;
       }
 
+      this.log("Retrying after authentication issue", error, {
+        accountId: this.accountId,
+        username: this.username,
+      });
       this.authenticated = false;
       await this.authenticate(true);
       return callback();
@@ -438,17 +515,43 @@ export class One2TrackClient {
       const accountPageResponse = await this.request(`${BASE_URL}/users/${this.accountId}/devices`);
       return parseCsrfTokenFromHtml(accountPageResponse.body);
     } catch {
+      this.log("Falling back to login page for CSRF token", undefined, {
+        accountId: this.accountId,
+        username: this.username,
+      });
       const response = await this.request(LOGIN_URL);
       return parseCsrfTokenFromHtml(response.body);
     }
   }
 
   private async request(url: string, options: Record<string, unknown> = {}): Promise<TextResponse> {
+    const method = String(options.method ?? "GET").toUpperCase();
+    const startedAt = Date.now();
+    this.log("HTTP request started", {
+      method,
+      url,
+      hasForm: "form" in options,
+      hasBody: "body" in options,
+    }, {
+      accountId: this.accountId,
+      username: this.username,
+    });
+
     try {
       const http = await this.getHttpClient();
       const response = await http(url, {
         ...options,
         throwHttpErrors: false,
+      });
+
+      this.log("HTTP request completed", {
+        method,
+        url,
+        statusCode: response.statusCode,
+        durationMs: Date.now() - startedAt,
+      }, {
+        accountId: this.accountId,
+        username: this.username,
       });
 
       if (response.statusCode === 429) {
@@ -467,6 +570,13 @@ export class One2TrackClient {
         error instanceof RateLimitError ||
         error instanceof TransportError
       ) {
+        this.logError("HTTP request failed with typed error", error, {
+          accountId: this.accountId,
+          username: this.username,
+          method,
+          url,
+          durationMs: Date.now() - startedAt,
+        });
         throw error;
       }
 
@@ -477,6 +587,13 @@ export class One2TrackClient {
         this.authenticated = false;
       }
 
+      this.logError("HTTP request failed", error, {
+        accountId: this.accountId,
+        username: this.username,
+        method,
+        url,
+        durationMs: Date.now() - startedAt,
+      });
       throw new TransportError("Could not reach One2Track", { cause: error as Error });
     }
   }
@@ -487,5 +604,21 @@ export class One2TrackClient {
     }
 
     return this.httpPromise;
+  }
+
+  private createContext(deviceUuid?: string): DebugContext {
+    return {
+      accountId: this.accountId,
+      username: this.username,
+      trackerUuid: deviceUuid,
+    };
+  }
+
+  private log(message: string, data?: unknown, context?: DebugContext): void {
+    this.logger?.("one2track-client", message, data, context);
+  }
+
+  private logError(message: string, data?: unknown, context?: DebugContext): void {
+    (this.errorLogger ?? this.logger)?.("one2track-client", message, data, context);
   }
 }

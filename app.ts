@@ -4,6 +4,7 @@ import Homey from "homey";
 
 import { parseAlarmsInput, parseCsvStrings, parsePhonebookInput, parseQuietTimesInput } from "./app/domain/actionParsers";
 import { AccountManager } from "./app/domain/accountManager";
+import { DebugLogger, debugSettings, generateDebugCid, type DebugContext } from "./app/infra/debugLogger";
 import {
   calculateDistanceMeters,
   crossedAboveThreshold,
@@ -42,7 +43,8 @@ type FlowAutocompleteOption = {
 type TriggerState = Record<string, unknown>;
 
 class One2TrackApp extends Homey.App {
-  public readonly accountManager = new AccountManager(this.homey, this.log.bind(this));
+  public accountManager!: AccountManager;
+  public debugLogger!: DebugLogger;
 
   private deviceTriggers!: {
     locationUpdated: Homey.FlowCardTriggerDevice;
@@ -66,8 +68,24 @@ class One2TrackApp extends Homey.App {
   };
 
   async onInit(): Promise<void> {
+    this.ensureDebugCid();
+    this.debugLogger = new DebugLogger(this.homey, this.log.bind(this), this.error.bind(this));
+    this.accountManager = new AccountManager(this.homey, this.debug.bind(this), this.debugError.bind(this));
+    this.homey.settings.on("set", this.onSettingSet.bind(this));
     this.registerFlowCards();
-    this.log("One2Track app initialized");
+    this.debug("app", "One2Track app initialized", {
+      homeyVersion: this.homey.version,
+      platform: this.homey.platform ?? "local",
+      platformVersion: this.homey.platformVersion ?? 1,
+    });
+  }
+
+  public debug(source: string, message: string, data?: unknown, context?: DebugContext): void {
+    this.debugLogger.info(source, message, data, context);
+  }
+
+  public debugError(source: string, message: string, data?: unknown, context?: DebugContext): void {
+    this.debugLogger.error(source, message, data, context);
   }
 
   private registerFlowCards(): void {
@@ -163,7 +181,9 @@ class One2TrackApp extends Homey.App {
 
     this.registerAction("log_raw_diagnostics", async (args: { device: One2TrackDevice }) => {
       const diagnostics = await args.device.getRawDiagnostics();
-      this.log("[one2track][diagnostics]", JSON.stringify(diagnostics));
+      this.debug("flow", "Raw diagnostics requested", diagnostics, {
+        deviceName: args.device.getName(),
+      });
     });
 
     const isOfflineCard = this.homey.flow.getConditionCard("is_offline");
@@ -339,10 +359,18 @@ class One2TrackApp extends Homey.App {
   }
 
   async triggerLocationUpdated(device: One2TrackDevice, snapshot: TrackerSnapshot): Promise<void> {
+    this.debug("flow-trigger", "Triggering location_updated", this.buildTokens(snapshot), {
+      deviceName: device.getName(),
+      trackerUuid: snapshot.trackerUuid,
+    });
     await this.deviceTriggers.locationUpdated.trigger(device, this.buildTokens(snapshot));
   }
 
   async triggerStatusChanged(device: One2TrackDevice, snapshot: TrackerSnapshot): Promise<void> {
+    this.debug("flow-trigger", "Triggering status_changed", { status: snapshot.status }, {
+      deviceName: device.getName(),
+      trackerUuid: snapshot.trackerUuid,
+    });
     await this.deviceTriggers.statusChanged.trigger(device, {
       device_name: snapshot.name,
       status: this.formatStatus(snapshot.status),
@@ -350,12 +378,20 @@ class One2TrackApp extends Homey.App {
   }
 
   async triggerDeviceWentOffline(device: One2TrackDevice, snapshot: TrackerSnapshot): Promise<void> {
+    this.debug("flow-trigger", "Triggering device_went_offline", undefined, {
+      deviceName: device.getName(),
+      trackerUuid: snapshot.trackerUuid,
+    });
     await this.deviceTriggers.deviceWentOffline.trigger(device, {
       device_name: snapshot.name,
     });
   }
 
   async triggerDeviceCameOnline(device: One2TrackDevice, snapshot: TrackerSnapshot): Promise<void> {
+    this.debug("flow-trigger", "Triggering device_came_online", { status: snapshot.status }, {
+      deviceName: device.getName(),
+      trackerUuid: snapshot.trackerUuid,
+    });
     await this.deviceTriggers.deviceCameOnline.trigger(device, {
       device_name: snapshot.name,
       status: this.formatStatus(snapshot.status),
@@ -363,12 +399,20 @@ class One2TrackApp extends Homey.App {
   }
 
   async triggerTumbleDetected(device: One2TrackDevice, snapshot: TrackerSnapshot): Promise<void> {
+    this.debug("flow-trigger", "Triggering tumble_detected", undefined, {
+      deviceName: device.getName(),
+      trackerUuid: snapshot.trackerUuid,
+    });
     await this.deviceTriggers.tumbleDetected.trigger(device, {
       device_name: snapshot.name,
     });
   }
 
   async triggerTumbleCleared(device: One2TrackDevice, snapshot: TrackerSnapshot): Promise<void> {
+    this.debug("flow-trigger", "Triggering tumble_cleared", undefined, {
+      deviceName: device.getName(),
+      trackerUuid: snapshot.trackerUuid,
+    });
     await this.deviceTriggers.tumbleCleared.trigger(device, {
       device_name: snapshot.name,
     });
@@ -379,6 +423,13 @@ class One2TrackApp extends Homey.App {
     snapshot: TrackerSnapshot,
     previousSnapshot: TrackerSnapshot | null,
   ): Promise<void> {
+    this.debug("flow-trigger", "Triggering battery_below_threshold", {
+      currentBattery: snapshot.batteryPercentage,
+      previousBattery: previousSnapshot?.batteryPercentage ?? null,
+    }, {
+      deviceName: device.getName(),
+      trackerUuid: snapshot.trackerUuid,
+    });
     await this.deviceTriggers.batteryBelowThreshold.trigger(device, this.buildTokens(snapshot), {
       currentBattery: snapshot.batteryPercentage,
       previousBattery: previousSnapshot?.batteryPercentage ?? null,
@@ -390,6 +441,13 @@ class One2TrackApp extends Homey.App {
     snapshot: TrackerSnapshot,
     previousSnapshot: TrackerSnapshot | null,
   ): Promise<void> {
+    this.debug("flow-trigger", "Triggering sim_balance_below_threshold", {
+      currentSimBalance: snapshot.simBalanceEur,
+      previousSimBalance: previousSnapshot?.simBalanceEur ?? null,
+    }, {
+      deviceName: device.getName(),
+      trackerUuid: snapshot.trackerUuid,
+    });
     await this.deviceTriggers.simBalanceBelowThreshold.trigger(device, this.buildTokens(snapshot), {
       currentSimBalance: snapshot.simBalanceEur,
       previousSimBalance: previousSnapshot?.simBalanceEur ?? null,
@@ -401,6 +459,13 @@ class One2TrackApp extends Homey.App {
     snapshot: TrackerSnapshot,
     previousSnapshot: TrackerSnapshot | null,
   ): Promise<void> {
+    this.debug("flow-trigger", "Triggering status_became", {
+      currentStatus: snapshot.status,
+      previousStatus: previousSnapshot?.status ?? null,
+    }, {
+      deviceName: device.getName(),
+      trackerUuid: snapshot.trackerUuid,
+    });
     await this.deviceTriggers.statusBecame.trigger(device, {
       device_name: snapshot.name,
       status: this.formatStatus(snapshot.status),
@@ -415,6 +480,13 @@ class One2TrackApp extends Homey.App {
     snapshot: TrackerSnapshot,
     previousSnapshot: TrackerSnapshot | null,
   ): Promise<void> {
+    this.debug("flow-trigger", "Triggering speed_above_threshold", {
+      currentSpeed: snapshot.speedKmh,
+      previousSpeed: previousSnapshot?.speedKmh ?? null,
+    }, {
+      deviceName: device.getName(),
+      trackerUuid: snapshot.trackerUuid,
+    });
     await this.deviceTriggers.speedAboveThreshold.trigger(device, this.buildTokens(snapshot), {
       currentSpeed: snapshot.speedKmh,
       previousSpeed: previousSnapshot?.speedKmh ?? null,
@@ -426,6 +498,13 @@ class One2TrackApp extends Homey.App {
     snapshot: TrackerSnapshot,
     previousSnapshot: TrackerSnapshot | null,
   ): Promise<void> {
+    this.debug("flow-trigger", "Triggering steps_above_threshold", {
+      currentSteps: snapshot.stepCount,
+      previousSteps: previousSnapshot?.stepCount ?? null,
+    }, {
+      deviceName: device.getName(),
+      trackerUuid: snapshot.trackerUuid,
+    });
     await this.deviceTriggers.stepsAboveThreshold.trigger(device, this.buildTokens(snapshot), {
       currentSteps: snapshot.stepCount,
       previousSteps: previousSnapshot?.stepCount ?? null,
@@ -438,6 +517,13 @@ class One2TrackApp extends Homey.App {
     previousAgeMinutes: number | null,
     currentAgeMinutes: number | null,
   ): Promise<void> {
+    this.debug("flow-trigger", "Triggering location_became_stale", {
+      previousAgeMinutes,
+      currentAgeMinutes,
+    }, {
+      deviceName: device.getName(),
+      trackerUuid: snapshot.trackerUuid,
+    });
     await this.deviceTriggers.locationBecameStale.trigger(device, this.buildTokens(snapshot), {
       previousAgeMinutes,
       currentAgeMinutes,
@@ -456,6 +542,10 @@ class One2TrackApp extends Homey.App {
       previousLongitude: previousSnapshot?.longitude ?? null,
     };
 
+    this.debug("flow-trigger", "Triggering zone transition cards", state, {
+      deviceName: device.getName(),
+      trackerUuid: snapshot.trackerUuid,
+    });
     await this.deviceTriggers.enteredZone.trigger(device, this.buildTokens(snapshot), state);
     await this.deviceTriggers.leftZone.trigger(device, this.buildTokens(snapshot), state);
   }
@@ -472,6 +562,13 @@ class One2TrackApp extends Homey.App {
       distance_meters: currentDistanceMeters ?? 0,
     };
 
+    this.debug("flow-trigger", "Triggering home distance cards", {
+      currentDistanceMeters,
+      previousDistanceMeters,
+    }, {
+      deviceName: device.getName(),
+      trackerUuid: snapshot.trackerUuid,
+    });
     await this.deviceTriggers.cameWithinHomeDistance.trigger(device, tokens, {
       currentDistanceMeters,
       previousDistanceMeters,
@@ -489,6 +586,13 @@ class One2TrackApp extends Homey.App {
     previousStationaryMinutes: number | null,
     currentStationaryMinutes: number | null,
   ): Promise<void> {
+    this.debug("flow-trigger", "Triggering stationary_too_long", {
+      previousStationaryMinutes,
+      currentStationaryMinutes,
+    }, {
+      deviceName: device.getName(),
+      trackerUuid: snapshot.trackerUuid,
+    });
     await this.deviceTriggers.stationaryTooLong.trigger(device, this.buildTokens(snapshot), {
       previousStationaryMinutes,
       currentStationaryMinutes,
@@ -496,6 +600,9 @@ class One2TrackApp extends Homey.App {
   }
 
   async triggerRemoteShutdownRequested(device: One2TrackDevice): Promise<void> {
+    this.debug("flow-trigger", "Triggering remote_shutdown_requested", undefined, {
+      deviceName: device.getName(),
+    });
     await this.deviceTriggers.remoteShutdownRequested.trigger(device, {
       device_name: device.getName(),
     });
@@ -507,8 +614,22 @@ class One2TrackApp extends Homey.App {
   ): void {
     const card = this.homey.flow.getActionCard(id);
     card.registerRunListener(async (args: TArgs) => {
-      await handler(args);
-      return true;
+      const device = "device" in args ? (args.device as One2TrackDevice) : null;
+      const context = device
+        ? {
+            deviceName: device.getName(),
+          }
+        : undefined;
+
+      this.debug("flow-action", `Running ${id}`, args, context);
+      try {
+        await handler(args);
+        this.debug("flow-action", `Completed ${id}`, undefined, context);
+        return true;
+      } catch (error) {
+        this.debugError("flow-action", `Failed ${id}`, error, context);
+        throw error;
+      }
     });
   }
 
@@ -555,6 +676,45 @@ class One2TrackApp extends Homey.App {
 
   private toOptionalNumber(value: unknown): number | null {
     return typeof value === "number" && Number.isFinite(value) ? value : null;
+  }
+
+  private onSettingSet(key: string): void {
+    if (key !== debugSettings.enabledKey && key !== debugSettings.cidKey) {
+      return;
+    }
+
+    if (key === debugSettings.cidKey) {
+      this.debugLogger.forceInfo("settings", "Debug CID updated", {
+        cid: this.homey.settings.get(debugSettings.cidKey),
+      });
+      return;
+    }
+
+    const enabled = this.debugLogger.isEnabled();
+    const payload = {
+      enabled,
+      homeyVersion: this.homey.version,
+      platform: this.homey.platform ?? "local",
+      platformVersion: this.homey.platformVersion ?? 1,
+    };
+
+    if (enabled) {
+      this.debugLogger.forceInfo("settings", "Debug setting changed", payload);
+      this.debugLogger.flushBuffered("debug_enabled");
+      return;
+    }
+
+    this.debugLogger.forceInfo("settings", "Debug setting changed", payload);
+    this.log("[debug:settings] Debug disabled");
+  }
+
+  private ensureDebugCid(): void {
+    const currentCid = this.homey.settings.get(debugSettings.cidKey);
+    if (typeof currentCid === "string" && currentCid.trim() !== "") {
+      return;
+    }
+
+    this.homey.settings.set(debugSettings.cidKey, generateDebugCid());
   }
 
 }
